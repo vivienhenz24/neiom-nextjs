@@ -8,6 +8,16 @@ export async function getDevSession(headers: Headers | import("next/dist/server/
 	const timestamp = new Date().toISOString();
 	console.log(`[${timestamp}] [getDevSession] Starting session check...`);
 	
+	// Check for sign-out flag in dev mode
+	if (process.env.NODE_ENV === "development") {
+		const cookieHeader = headers.get("cookie") || "";
+		// Check for a special cookie that indicates user has signed out
+		if (cookieHeader.includes("neiom-dev-signed-out=true")) {
+			console.log(`[${timestamp}] [getDevSession] Dev mode: sign-out flag detected, returning null`);
+			return null;
+		}
+	}
+	
 	// Try to get the real session first
 	console.log(`[${timestamp}] [getDevSession] Attempting to get real session from auth.api.getSession...`);
 	const session = await auth.api.getSession({ headers });
@@ -19,7 +29,7 @@ export async function getDevSession(headers: Headers | import("next/dist/server/
 
 	console.log(`[${timestamp}] [getDevSession] No real session found`);
 
-	// In development mode, always return a mock session for the dev email
+	// In development mode, always return a mock session for the dev email (unless signed out)
 	if (process.env.NODE_ENV === "development") {
 		console.log(`[${timestamp}] [getDevSession] Development mode detected, creating mock session for: ${DEV_EMAIL}`);
 		const mockSession = {

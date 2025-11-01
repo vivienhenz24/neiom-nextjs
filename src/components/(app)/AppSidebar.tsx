@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { Home, Volume2, Mic } from "lucide-react"
+import { Home, Volume2, Mic, LogOut } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarTrigger,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -15,6 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { authClient } from "@/lib/auth-client"
 
 const applicationItems = [
   {
@@ -39,6 +41,16 @@ const playgroundItems = [
 
 export function AppSidebar() {
   const { state } = useSidebar()
+  
+  const handleSignOut = async () => {
+    await authClient.signOut()
+    
+    // In dev mode, set a cookie flag to prevent getDevSession from returning a mock session
+    // Always set this cookie - getDevSession will only check it in dev mode
+    document.cookie = "neiom-dev-signed-out=true; path=/; max-age=86400" // 24 hours
+    
+    window.location.href = "/"
+  }
   
   return (
     <Sidebar collapsible="icon">
@@ -91,6 +103,16 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleSignOut}>
+              <LogOut />
+              <span>Sign Out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

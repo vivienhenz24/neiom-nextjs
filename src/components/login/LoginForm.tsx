@@ -30,6 +30,9 @@ export default function LoginForm() {
         return
       }
 
+      // Clear the dev sign-out flag when logging in
+      document.cookie = "neiom-dev-signed-out=; path=/; max-age=0"
+
       // Small delay to ensure cookies are set before redirect
       await new Promise(resolve => setTimeout(resolve, 200))
       
