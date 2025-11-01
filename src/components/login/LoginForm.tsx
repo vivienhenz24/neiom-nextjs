@@ -1,13 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useLocale } from "@/components/LocaleProvider"
 import { authClient } from "@/lib/auth-client"
 
 export default function LoginForm() {
   const { t } = useLocale();
-  const router = useRouter();
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -38,7 +36,7 @@ export default function LoginForm() {
       
       // Use window.location for full page reload to ensure cookies are sent
       window.location.href = "/"
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.")
       setIsLoading(false)
     }
