@@ -42,19 +42,21 @@ export function devAuthSeedPlugin(): BetterAuthPlugin {
         return;
       }
 
-      if (!existingUser.emailVerified) {
-        await ctx.internalAdapter.updateUser(existingUser.id, {
+      const { user, accounts = [] } = existingUser;
+
+      if (!user.emailVerified) {
+        await ctx.internalAdapter.updateUser(user.id, {
           emailVerified: true,
         });
       }
 
-      const credentialAccount = existingUser.accounts?.find(
+      const credentialAccount = accounts.find(
         (account) => account.providerId === "credential",
       );
 
       if (!credentialAccount) {
         await ctx.internalAdapter.createAccount({
-          userId: existingUser.id,
+          userId: user.id,
           providerId: "credential",
           accountId: email,
           password: hashedPassword,

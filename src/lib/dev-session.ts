@@ -4,7 +4,7 @@ import { auth, DEV_EMAIL } from "@/lib/auth";
  * Helper function that always returns a session for dev email in development mode
  * This bypasses the need for actual session cookies when using memory adapter
  */
-export async function getDevSession(headers: Headers | import("next/dist/server/web/spec-extension/request").Headers) {
+export async function getDevSession(headers: Headers) {
 	const timestamp = new Date().toISOString();
 	console.log(`[${timestamp}] [getDevSession] Starting session check...`);
 	
