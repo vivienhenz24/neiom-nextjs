@@ -63,8 +63,8 @@ export default function Team() {
               <div className="flex justify-center md:order-first">
                 <div className="w-48 h-48 rounded-full overflow-hidden">
                   <Image 
-                    src="/mark.jpeg" 
-                    alt="Mark McDonald" 
+                    src="/vic.jpeg" 
+                    alt="Victor Henz" 
                     width={192}
                     height={192}
                     className="w-full h-full object-cover"
@@ -79,7 +79,7 @@ export default function Team() {
                 </p>
                 <div className="mt-4">
                   <a 
-                    href="https://www.linkedin.com/in/mark-mcdonald/details/experience/" 
+                    href="https://www.linkedin.com/in/victorhenz/" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 border border-black text-black hover:bg-black hover:text-white transition-all duration-200 font-normal rounded-lg hover:scale-105 transform"
