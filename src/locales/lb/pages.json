@@ -42,21 +42,64 @@
       "description": "Dëst ass eng Test Säit fir ze verifizéieren datt d'Top Bar korrekt iwwer verschidde Säiten funktiounéiert."
     },
     "demo": {
-      "title": "Demo Text zu Sprach Dialog",
+      "title": "Demo Diaglogue INNL",
+      "introTitle": "Wëllkomm bei Text-to-Speech",
+      "introDescription": "Gitt hei drënner Ären Text an a passt d'Akustesch Astellungen op der rietser Säit un. Klickt op Ofschécken fir d'Sproochaudio ze generéieren.",
       "promptLabel": "Gitt Äre Prompt oder Text an",
       "promptPlaceholder": "Tippt Ären Text hei an...",
       "submit": "Ofschécken",
       "clear": "Läschen",
       "settings": {
         "title": "Astellungen",
-        "subtitle": "TTS Parameter",
-        "description": "Konfiguréiert Sprooch, Stëmm, Spreechtempo, Pitch, an Output Optiounen hei. Kontrollen kommen geschwënn."
+      "subtitle": "TTS Parameter",
+      "description": "Konfiguréiert hei d'Parameteren fir d'Sproochsynthes.",
+      "voice": {
+        "label": "Stëmm",
+        "description": "Wielt d'Stëmm fir d'Sproochsynthes",
+        "placeholder": "Stëmm auswielen"
+      },
+      "accent": {
+        "label": "Sprooch-Akzent",
+        "description": "Wielt den Ausdrocksakzent",
+        "placeholder": "Akzent auswielen"
+      },
+      "rate": {
+        "label": "Sproochgeschwindegkeet",
+        "description": "Passen d'Redesspeed un"
+      },
+      "pitch": {
+        "label": "Tounhéicht",
+        "description": "Stëmm méi héich oder méi déif maachen"
+      },
+      "volume": {
+        "label": "Volumen",
+        "description": "Ausgangslautstäerkt"
+      },
+      "format": {
+        "label": "Audioformat",
+        "description": "Audio-Dateiformat fir Downloads",
+        "placeholder": "Format auswielen"
+      },
+      "sampleRate": {
+        "label": "Sample Rate",
+        "description": "Audioqualitéit (méi héich = méi grouss Datei)",
+        "placeholder": "Sample Rate auswielen"
+      },
+      "autoPlay": {
+        "label": "Auto-Ofspillen nom Generéieren",
+        "description": "Audio automatesch nom Generéieren ofspillen"
+      },
+      "autoDownload": {
+        "label": "Audio automatesch eroflueden",
+        "description": "Audio-Datei automatesch nom Generéieren eroflueden"
+      },
+      "reset": "Op Standard zrécksetzen"
       }
     },
     "topBar": {
       "pageTitles": {
         "dashboard": "Dashboard",
-        "demoApplication": "Demo Uwendung",
+        "demoApplication": "Demo Diaglogue INNL",
         "translate": "Iwwersetzen",
         "test": "Test"
       },
@@ -89,11 +132,14 @@
       "translating": "Iwwersetzen...",
       "translateToLuxembourgish": "Op Lëtzebuergesch iwwersetzen",
       "enterTextBeforeTranslation": "Gitt Text an ier Dir eng Iwwersetzung ufrot.",
-      "unableToTranslate": "Kann elo net iwwersetzen. Probéiert w.e.g. nach emol."
+      "unableToTranslate": "Kann elo net iwwersetzen. Probéiert w.e.g. nach emol.",
+      "selectLanguageRequired": "Wielt w.e.g. eng Ausgangssprooch ier Dir iwwersetzt.",
+      "introTitle": "Op Lëtzebuergesch iwwersetzen a lauschteren",
+      "introDescription": "Gitt Text an enger belibeger Sprooch an a kritt direkt eng Iwwersetzung op Lëtzebuergesch an héiert d'Aussprach."
     },
     "sidebar": {
       "application": "Uwendung",
-      "demoApplication": "Demo Uwendung",
+      "demoApplication": "Demo Diaglogue INNL",
       "translate": "Iwwersetzen",
       "signOut": "Ofmellen"
     }

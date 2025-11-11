@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mic, Volume2, Copy, Lock } from "lucide-react"
+import { Mic, Volume2, Copy, ArrowLeftRight, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -17,11 +17,10 @@ import { useLocale } from "@/components/LocaleProvider"
 import { getNestedTranslations } from "@/lib/i18n"
 
 const LANGUAGE_OPTIONS = [
-  { label: "French", value: "fr" },
   { label: "English", value: "en" },
-  { label: "Luxembourgish", value: "lb" },
-  { label: "Spanish", value: "es" },
+  { label: "French", value: "fr" },
   { label: "German", value: "de" },
+  { label: "Spanish", value: "es" },
   { label: "Portuguese", value: "pt" },
   { label: "Italian", value: "it" },
   { label: "Dutch", value: "nl" },
@@ -35,16 +34,13 @@ const CHARACTER_LIMIT = 5000
 export default function TranslatePage() {
   const { locale } = useLocale()
   const t = getNestedTranslations(locale).pages.dashboard.translate
-  const tTopBar = getNestedTranslations(locale).pages.dashboard.topBar
-  
-  const [inputLanguage, setInputLanguage] = useState("en")
+
+  const [inputLanguage, setInputLanguage] = useState("")
   const [inputText, setInputText] = useState("")
   const [translation, setTranslation] = useState("")
-  const [isTranslating, setIsTranslating] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
-  
-  const TARGET_LANGUAGE_LABEL = t.luxembourgish
 
   const handleTranslate = async () => {
     if (!inputText.trim()) {
@@ -52,7 +48,12 @@ export default function TranslatePage() {
       return
     }
 
-    setIsTranslating(true)
+    if (!inputLanguage) {
+      setError(t.selectLanguageRequired)
+      return
+    }
+
+    setIsLoading(true)
     setError(null)
     setCopyMessage(null)
 
@@ -67,7 +68,7 @@ export default function TranslatePage() {
       console.error("Translation failed", err)
       setError(t.unableToTranslate)
     } finally {
-      setIsTranslating(false)
+      setIsLoading(false)
     }
   }
 
@@ -96,47 +97,46 @@ export default function TranslatePage() {
   const characterCount = `${inputText.length} / ${CHARACTER_LIMIT}`
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
-      {/* Language Bar */}
-      <div className="rounded-2xl border border-border bg-background/90 p-4 md:p-5 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex-1">
-            <Select value={inputLanguage} onValueChange={setInputLanguage}>
-              <SelectTrigger className="w-full md:w-72">
-                <SelectValue placeholder={t.selectLanguagePlaceholder} />
-              </SelectTrigger>
-              <SelectContent>
-                {LANGUAGE_OPTIONS.map((language) => (
-                  <SelectItem key={language.value} value={language.value}>
-                    {language.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="container mx-auto p-6 max-w-7xl h-[calc(100vh-4rem)] flex flex-col">
+      <div className="mb-4 flex-shrink-0">
+        <h2 className="text-xl font-semibold mb-1">{t.introTitle}</h2>
+        <p className="text-sm text-muted-foreground">{t.introDescription}</p>
+      </div>
 
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex items-center gap-2 rounded-full border px-4 py-2 text-foreground/80">
-              <Lock className="h-4 w-4" aria-hidden="true" />
-              <span className="font-medium">{TARGET_LANGUAGE_LABEL}</span>
-            </div>
-          </div>
+      <div className="flex items-center justify-between gap-4 mb-4 flex-shrink-0">
+        <Select value={inputLanguage} onValueChange={setInputLanguage}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder={t.selectLanguagePlaceholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {LANGUAGE_OPTIONS.map((language) => (
+              <SelectItem key={language.value} value={language.value}>
+                {language.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" disabled>
+            <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+          </Button>
+          <span className="text-sm font-medium">{t.luxembourgish}</span>
         </div>
       </div>
 
-      {/* Panels */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {/* Input Panel */}
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-hidden mb-4">
+        <section className="flex flex-col border border-input rounded-lg bg-background p-4">
           <Textarea
             value={inputText}
             onChange={(event) =>
               setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
             }
             placeholder={t.enterTextPlaceholder}
-            className="min-h-[260px] resize-none border-0 p-0 text-base leading-relaxed focus-visible:ring-0"
+            className="flex-1 min-h-[180px] resize-none border-0 bg-transparent p-0 text-base leading-relaxed focus-visible:ring-0 focus-visible:outline-none"
+            maxLength={CHARACTER_LIMIT}
           />
-          <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
             <Button
               type="button"
               variant="ghost"
@@ -150,16 +150,17 @@ export default function TranslatePage() {
           </div>
         </section>
 
-        {/* Output Panel */}
-        <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm">
-          <div className="min-h-[260px] whitespace-pre-wrap text-base leading-relaxed text-foreground/80">
+        <section className="flex flex-col border border-input rounded-lg bg-muted/50 p-4">
+          <div className="flex-1 min-h-[180px] rounded-md text-sm overflow-y-auto">
             {translation ? (
-              translation
+              <span className="whitespace-pre-wrap text-foreground/80">
+                {translation}
+              </span>
             ) : (
               <span className="text-muted-foreground">{t.translationWillAppear}</span>
             )}
           </div>
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-3 pt-3 border-t border-border flex items-center gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -187,20 +188,27 @@ export default function TranslatePage() {
         </section>
       </div>
 
-      {/* Translate Button */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex justify-center flex-shrink-0">
         <Button
-          onClick={handleTranslate}
-          disabled={isTranslating || !inputText.trim()}
           size="lg"
-          className="w-full md:w-auto px-10"
+          className="px-12"
+          onClick={handleTranslate}
+          disabled={isLoading || !inputText.trim() || !inputLanguage}
         >
-          {isTranslating ? t.translating : t.translateToLuxembourgish}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t.translating}
+            </>
+          ) : (
+            t.translateToLuxembourgish
+          )}
         </Button>
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
       </div>
+
+      {error && (
+        <p className="mt-2 text-center text-sm text-red-600 flex-shrink-0">{error}</p>
+      )}
     </div>
   )
 }

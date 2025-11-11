@@ -42,21 +42,64 @@
       "description": "This is a test page to verify the top bar works correctly across different pages."
     },
     "demo": {
-      "title": "Demo Text to Speech Dialogue",
+      "title": "Demo Diaglogue INNL",
+      "introTitle": "Welcome to Text-to-Speech",
+      "introDescription": "Enter your text below and configure the voice settings on the right. Click Submit to generate speech audio.",
       "promptLabel": "Enter your prompt or text",
       "promptPlaceholder": "Type your text here...",
       "submit": "Submit",
       "clear": "Clear",
       "settings": {
         "title": "Settings",
-        "subtitle": "TTS Parameters",
-        "description": "Configure language, voice, speaking rate, pitch, and output options here. Controls coming soon."
+      "subtitle": "TTS Parameters",
+      "description": "Configure the text-to-speech synthesis parameters below.",
+      "voice": {
+        "label": "Voice",
+        "description": "Choose the voice for speech synthesis",
+        "placeholder": "Select voice"
+      },
+      "accent": {
+        "label": "Language Accent",
+        "description": "Select pronunciation accent",
+        "placeholder": "Select accent"
+      },
+      "rate": {
+        "label": "Speaking Rate",
+        "description": "Adjust speech speed"
+      },
+      "pitch": {
+        "label": "Pitch",
+        "description": "Adjust voice pitch (higher or lower)"
+      },
+      "volume": {
+        "label": "Volume",
+        "description": "Output volume level"
+      },
+      "format": {
+        "label": "Audio Format",
+        "description": "Audio file format for downloads",
+        "placeholder": "Select format"
+      },
+      "sampleRate": {
+        "label": "Sample Rate",
+        "description": "Audio quality (higher = larger file)",
+        "placeholder": "Select sample rate"
+      },
+      "autoPlay": {
+        "label": "Auto-play on Generate",
+        "description": "Automatically play audio after generation"
+      },
+      "autoDownload": {
+        "label": "Auto-download Audio",
+        "description": "Automatically download audio file after generation"
+      },
+      "reset": "Reset to Defaults"
       }
     },
     "topBar": {
       "pageTitles": {
         "dashboard": "Dashboard",
-        "demoApplication": "Demo Application",
+        "demoApplication": "Demo Diaglogue INNL",
         "translate": "Translate",
         "test": "Test"
       },
@@ -76,8 +119,8 @@
       }
     },
     "translate": {
-      "selectLanguage": "Select language",
-      "selectLanguagePlaceholder": "Select language",
+      "selectLanguage": "Select Language",
+      "selectLanguagePlaceholder": "Select Language",
       "luxembourgish": "Luxembourgish",
       "enterTextPlaceholder": "Enter text to translate...",
       "translationWillAppear": "Translation will appear here...",
@@ -89,11 +132,14 @@
       "translating": "Translating...",
       "translateToLuxembourgish": "Translate to Luxembourgish",
       "enterTextBeforeTranslation": "Enter text before requesting a translation.",
-      "unableToTranslate": "Unable to translate right now. Please try again."
+      "unableToTranslate": "Unable to translate right now. Please try again.",
+      "selectLanguageRequired": "Please select a source language before translating.",
+      "introTitle": "Translate to Luxembourgish and Pronounce",
+      "introDescription": "Enter text in any language and get an instant translation to Luxembourgish and hear how it's pronounced."
     },
     "sidebar": {
       "application": "Application",
-      "demoApplication": "Demo Application",
+      "demoApplication": "Demo Diaglogue INNL",
       "translate": "Translate",
       "signOut": "Sign Out"
     }
