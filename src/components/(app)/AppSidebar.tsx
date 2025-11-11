@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Home, LogOut } from "lucide-react"
+import { Home, LogOut, TestTube } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,11 @@ const applicationItems = [
     title: "Demo Application",
     icon: Home,
     href: "/",
+  },
+  {
+    title: "Test",
+    icon: TestTube,
+    href: "/test",
   },
 ]
 

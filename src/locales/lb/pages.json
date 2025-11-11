@@ -35,6 +35,45 @@
     "missionContent": "Neiom entwéckelt Text-zu-Sprach Technologie fir d'Lëtzebuerger Sprooch. Eis Missioun ass et, Lëtzebuerger Inhalt duerch héichwäerteg Stëmmsynthese zougänglech ze maachen.\n\n**Wat mir maachen**\n\nMir erstellen Text-zu-Sprach Léisungen déi:\n• Natierlech klingend Lëtzebuerger Audio generéieren\n• Accessibilitéit fir digitale Inhalt ënnerstëtzen\n• Käschteffizient Audio-Produktioun erméiglechen\n• Deen eenzegaartegen Charakter vun Lëtzebuergesch erhalen\n\n**Eis Technologie**\n\nEis TTS System ass speziell fir Lëtzebuergesch konzipéiert an erfaasst déi eenzegaarteg Aussprach a Intonatiounsmuster vun der Sprooch.\n\n**Kontaktéiert eis**\n\nFir méi Informatiounen, kontaktéiert eis w.e.g. op vhenz@college.harvard.edu",
     "technologyContent": "Eis Lëtzebuerger Text-zu-Sprach Technologie ass op fortgeschratt Maschinneleieren Modeller opgebaut, déi speziell op Lëtzebuerger Sproochdaten trainiert goufen.\n\n**Technesch Funktiounen**\n\n• Neural Network-baséiert Stëmmsynthese\n• Echtzäit Audio-Generatioun\n• Héichwäerteg Output (44.1kHz)\n• Anpassbar Stëmmparameter\n• API Integratioun Ënnerstëtzung\n\n**Leeschtung**\n\n• Ënner-Sekonnen Generatiounszäit\n• Natierlech Aussprachemuster\n• Konsistent Stëmmcharakteristiken\n• Skaléierbar Infrastruktur\n\n**Integratioun**\n\n• RESTful API Endpunkten\n• SDK Ënnerstëtzung fir Entwéckler\n• Cloud-baséiert Veraarbechtung\n• Enterprise-Grad Sécherheet",
     "contactContent": "Prett fir Lëtzebuerger Text-zu-Sprach an Äert Projet ze integréieren? Mir si hei fir Iech ze hëllefen ufänken.\n\n**Ufänken**\n\n• Gratis Berodung\n• Personaliséiert Integratioun Ënnerstëtzung\n• Technesch Dokumentatioun\n• Beispill Implementatiounen\n\n**Ënnerstëtzung**\n\n• Entwéckler Ressourcen\n• API Dokumentatioun\n• Best Practices Guide\n• Community Forum\n\n**Kontakt Informatiounen**\n\nE-Mail: vhenz@college.harvard.edu\nÄntwertzäit: Bannent 24 Stonnen\n\nFir Enterprise Ufroen, plant w.e.g. eng Berodung."
+  },
+  "dashboard": {
+    "test": {
+      "title": "Test Säit",
+      "description": "Dëst ass eng Test Säit fir ze verifizéieren datt d'Top Bar korrekt iwwer verschidde Säiten funktiounéiert."
+    },
+    "demo": {
+      "title": "Demo Text zu Sprach Dialog",
+      "promptLabel": "Gitt Äre Prompt oder Text an",
+      "promptPlaceholder": "Tippt Ären Text hei an...",
+      "submit": "Ofschécken",
+      "clear": "Läschen",
+      "settings": {
+        "title": "Astellungen",
+        "subtitle": "TTS Parameter",
+        "description": "Konfiguréiert Sprooch, Stëmm, Spreechtempo, Pitch, an Output Optiounen hei. Kontrollen kommen geschwënn."
+      }
+    },
+    "topBar": {
+      "pageTitles": {
+        "dashboard": "Dashboard",
+        "demoApplication": "Demo Uwendung",
+        "test": "Test"
+      },
+      "feedback": {
+        "button": "Feedback",
+        "label": "Feedback",
+        "submitFeedback": "Feedback ofschécken",
+        "viewFeedback": "Feedback uweisen",
+        "reportIssue": "E Problem mellen"
+      },
+      "help": {
+        "button": "Hëllef",
+        "label": "Hëllef",
+        "documentation": "Dokumentatioun",
+        "contactSupport": "Support kontaktéieren",
+        "keyboardShortcuts": "Tastaturkürzel"
+      }
+    }
   }
 }
 

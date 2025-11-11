@@ -20,15 +20,17 @@ export default function Homepage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="flex flex-col md:flex-row h-[calc(100vh-2rem)] md:h-[calc(100vh-2rem)]">
+      <div className="flex flex-col md:flex-row h-[calc(100vh-4rem-3.5rem)] md:h-[calc(100vh-4rem-3.5rem)]">
         {/* Left Pane: Prompt/Input (fills entire left half) */}
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="pb-4">
             <h1 className="text-2xl font-semibold">Demo Text to Speech Dialogue</h1>
           </div>
-          <form onSubmit={onSubmit} className="flex-1 flex flex-col min-w-0 gap-3">
+          <form onSubmit={onSubmit} className="flex-1 min-h-0 flex flex-col gap-3">
             <div className="flex-1 min-h-0 flex flex-col gap-2">
-              <Label htmlFor="prompt">Enter your prompt or text</Label>
+              <div>
+                <Label htmlFor="prompt">Enter your prompt or text</Label>
+              </div>
               <div className="flex-1 min-h-0">
                 <Textarea
                   id="prompt"
@@ -36,14 +38,14 @@ export default function Homepage() {
                   onChange={(e) => setText(e.target.value)}
                   placeholder="Type your text here..."
                   maxLength={maxLength}
-                  className="h-full min-h-0 resize-none"
+                  className="h-full w-full min-h-0 flex-1 resize-none overflow-y-auto"
                 />
               </div>
               <div className="text-xs text-muted-foreground text-right">
                 {text.length} / {maxLength}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button type="submit" disabled={!text.trim()}>Submit</Button>
               <Button type="button" variant="outline" onClick={onClear} disabled={!text}>Clear</Button>
             </div>
