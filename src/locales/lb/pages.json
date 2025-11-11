@@ -57,6 +57,7 @@
       "pageTitles": {
         "dashboard": "Dashboard",
         "demoApplication": "Demo Uwendung",
+        "translate": "Iwwersetzen",
         "test": "Test"
       },
       "feedback": {
@@ -73,6 +74,28 @@
         "contactSupport": "Support kontaktéieren",
         "keyboardShortcuts": "Tastaturkürzel"
       }
+    },
+    "translate": {
+      "selectLanguage": "Sprooch auswielen",
+      "selectLanguagePlaceholder": "Sprooch auswielen",
+      "luxembourgish": "Lëtzebuergesch",
+      "enterTextPlaceholder": "Gitt Text fir ze iwwersetzen an...",
+      "translationWillAppear": "Iwwersetzung erschéngt hei...",
+      "speak": "Schwätzen",
+      "listenToPronunciation": "Aussprach lauschteren",
+      "copyTranslation": "Iwwersetzung kopéieren",
+      "copiedToClipboard": "An d'Zwëschenaplag kopéiert",
+      "copyFailed": "Kopéieren ass feelgeschloen",
+      "translating": "Iwwersetzen...",
+      "translateToLuxembourgish": "Op Lëtzebuergesch iwwersetzen",
+      "enterTextBeforeTranslation": "Gitt Text an ier Dir eng Iwwersetzung ufrot.",
+      "unableToTranslate": "Kann elo net iwwersetzen. Probéiert w.e.g. nach emol."
+    },
+    "sidebar": {
+      "application": "Uwendung",
+      "demoApplication": "Demo Uwendung",
+      "translate": "Iwwersetzen",
+      "signOut": "Ofmellen"
     }
   }
 }

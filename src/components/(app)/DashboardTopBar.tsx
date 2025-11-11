@@ -12,74 +12,86 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-
-const PAGE_TITLE_MAP: Record<string, string> = {
-  "/": "Demo Application",
-  "/translate": "Translate",
-}
-
-function getPageTitle(pathname: string | null): string {
-  if (!pathname) return "Dashboard"
-
-  const normalizedPath = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname
-
-  if (PAGE_TITLE_MAP[normalizedPath]) {
-    return PAGE_TITLE_MAP[normalizedPath]
-  }
-
-  // If the path is deeper (e.g., /playground/text-to-speech), attempt to title-case the last segment
-  const segments = normalizedPath.split("/").filter(Boolean)
-  const fallback = segments.at(-1)
-
-  if (!fallback) {
-    return "Dashboard"
-  }
-
-  return fallback
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
-}
+import { useSidebar } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
+import { useLocale } from "@/components/LocaleProvider"
+import { getNestedTranslations } from "@/lib/i18n"
 
 export function DashboardTopBar() {
   const pathname = usePathname()
+  const { state } = useSidebar()
+  const { locale } = useLocale()
+  const t = getNestedTranslations(locale).pages.dashboard.topBar
 
-  const pageTitle = useMemo(() => getPageTitle(pathname), [pathname])
+  const pageTitle = useMemo(() => {
+    if (!pathname) return t.pageTitles.dashboard
+
+    const normalizedPath = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname
+
+    if (normalizedPath === "/") {
+      return t.pageTitles.demoApplication
+    }
+    if (normalizedPath === "/translate") {
+      return t.pageTitles.translate
+    }
+
+    // If the path is deeper, attempt to title-case the last segment
+    const segments = normalizedPath.split("/").filter(Boolean)
+    const fallback = segments.at(-1)
+
+    if (!fallback) {
+      return t.pageTitles.dashboard
+    }
+
+    return fallback
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  }, [pathname, t])
+  
+  // Determine left position based on sidebar state
+  // Expanded: left-64 (16rem = 256px), Collapsed: left-16 (4rem = 64px)
+  const isSidebarOpen = state === "expanded"
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b bg-background md:left-[var(--sidebar-width)]">
-      <div className="flex h-full items-center justify-between px-4 md:px-6">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{pageTitle}</h1>
-        </div>
-        <div className="flex items-center gap-2">
+    <header 
+      className={cn(
+        "fixed top-0 left-0 right-0 h-14 border-b bg-background z-50 transition-all duration-300",
+        // On mobile: full width (left-0)
+        // On desktop: adjust based on sidebar state
+        isSidebarOpen ? "md:left-64" : "md:left-16" // Expanded: 16rem, Collapsed: 4rem
+      )}
+    >
+      <div className="flex h-full items-center justify-between px-6">
+        <h1 className="text-xl font-semibold">{pageTitle}</h1>
+        <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                Feedback
+                {t.feedback.button}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Feedback</DropdownMenuLabel>
+              <DropdownMenuLabel>{t.feedback.label}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Submit Feedback</DropdownMenuItem>
-              <DropdownMenuItem>View Feedback</DropdownMenuItem>
-              <DropdownMenuItem>Report an Issue</DropdownMenuItem>
+              <DropdownMenuItem>{t.feedback.submitFeedback}</DropdownMenuItem>
+              <DropdownMenuItem>{t.feedback.viewFeedback}</DropdownMenuItem>
+              <DropdownMenuItem>{t.feedback.reportIssue}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                Help
+                {t.help.button}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Help</DropdownMenuLabel>
+              <DropdownMenuLabel>{t.help.label}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Documentation</DropdownMenuItem>
-              <DropdownMenuItem>Contact Support</DropdownMenuItem>
-              <DropdownMenuItem>Keyboard Shortcuts</DropdownMenuItem>
+              <DropdownMenuItem>{t.help.documentation}</DropdownMenuItem>
+              <DropdownMenuItem>{t.help.contactSupport}</DropdownMenuItem>
+              <DropdownMenuItem>{t.help.keyboardShortcuts}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
