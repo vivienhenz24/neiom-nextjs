@@ -63,7 +63,7 @@ export function AppSidebar() {
             <SidebarTrigger className={triggerClassName} />
           ) : (
             <>
-              <h2 className="text-lg font-semibold">Neiom</h2>
+              <h2 className="text-lg font-semibold">Moien!</h2>
               <SidebarTrigger className={triggerClassName} />
             </>
           )}
