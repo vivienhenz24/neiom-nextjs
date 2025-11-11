@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { Mic, Volume2, Copy, ArrowLeftRight, Lock } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
@@ -13,11 +14,13 @@ import {
 } from "@/components/ui/select"
 import { translateText } from "@/lib/translation"
 
-const INPUT_LANGUAGES = [
-  { label: "English", value: "en" },
+const LANGUAGE_OPTIONS = [
+  { label: "Detect language", value: "detect" },
   { label: "French", value: "fr" },
-  { label: "German", value: "de" },
+  { label: "English", value: "en" },
+  { label: "Luxembourgish", value: "lb" },
   { label: "Spanish", value: "es" },
+  { label: "German", value: "de" },
   { label: "Portuguese", value: "pt" },
   { label: "Italian", value: "it" },
   { label: "Dutch", value: "nl" },
@@ -25,13 +28,23 @@ const INPUT_LANGUAGES = [
   { label: "Romanian", value: "ro" },
 ]
 
+const QUICK_LANGUAGE_TABS = [
+  { label: "French", value: "fr" },
+  { label: "English", value: "en" },
+  { label: "Luxembourgish", value: "lb" },
+  { label: "Spanish", value: "es" },
+  { label: "German", value: "de" },
+  { label: "Portuguese", value: "pt" },
+]
+
 const TARGET_LANGUAGE = "lb"
-const CHARACTER_LIMIT = 1000
+const TARGET_LANGUAGE_LABEL = "Luxembourgish"
+const CHARACTER_LIMIT = 5000
 
 export default function TranslatePage() {
-  const [sourceLanguage, setSourceLanguage] = useState(INPUT_LANGUAGES[0].value)
+  const [inputLanguage, setInputLanguage] = useState("detect")
   const [inputText, setInputText] = useState("")
-  const [outputText, setOutputText] = useState("")
+  const [translation, setTranslation] = useState("")
   const [isTranslating, setIsTranslating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
@@ -49,10 +62,10 @@ export default function TranslatePage() {
     try {
       const { translation } = await translateText({
         text: inputText.trim(),
-        sourceLanguage,
+        sourceLanguage: inputLanguage,
         targetLanguage: TARGET_LANGUAGE,
       })
-      setOutputText(translation)
+      setTranslation(translation)
     } catch (err) {
       console.error("Translation failed", err)
       setError("Unable to translate right now. Please try again.")
@@ -61,11 +74,16 @@ export default function TranslatePage() {
     }
   }
 
+  const handlePronunciation = () => {
+    if (!translation) return
+    console.log("Play pronunciation placeholder for:", translation)
+  }
+
   const handleCopy = async () => {
-    if (!outputText) return
+    if (!translation) return
 
     try {
-      await navigator.clipboard.writeText(outputText)
+      await navigator.clipboard.writeText(translation)
       setCopyMessage("Copied to clipboard")
       setTimeout(() => setCopyMessage(null), 2000)
     } catch {
@@ -74,117 +92,142 @@ export default function TranslatePage() {
     }
   }
 
-  const handleClear = () => {
-    setInputText("")
-    setOutputText("")
-    setError(null)
-    setCopyMessage(null)
+  const handleQuickLanguageSelect = (value: string) => {
+    setInputLanguage(value)
   }
 
+  const handleMicInput = () => {
+    console.log("Voice input coming soon")
+  }
+
+  const characterCount = `${inputText.length} / ${CHARACTER_LIMIT}`
+
   return (
-    <div className="p-8">
-      <div className="flex flex-col md:flex-row h-[calc(100vh-4rem-3.5rem)]">
-        {/* Left Pane: Input/Output */}
-        <div className="flex-1 min-w-0 flex flex-col gap-6">
-          {/* Language selector */}
-          <div>
-            <Label htmlFor="input-language">Input Language</Label>
-            <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-              <SelectTrigger id="input-language" className="w-full mt-1">
-                <SelectValue placeholder="Select a language" />
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
+      {/* Language Bar */}
+      <div className="rounded-2xl border border-border bg-background/90 p-4 md:p-5 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1 space-y-3">
+            <Select value={inputLanguage} onValueChange={setInputLanguage}>
+              <SelectTrigger className="w-full md:w-72">
+                <SelectValue placeholder="Detect language" />
               </SelectTrigger>
               <SelectContent>
-                {INPUT_LANGUAGES.map((lang) => (
-                  <SelectItem key={lang.value} value={lang.value}>
-                    {lang.label}
+                {LANGUAGE_OPTIONS.map((language) => (
+                  <SelectItem key={language.value} value={language.value}>
+                    {language.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
 
-          {/* Input area */}
-          <div className="flex flex-col">
-            <Textarea
-              value={inputText}
-              onChange={(event) => setInputText(event.target.value.slice(0, CHARACTER_LIMIT))}
-              placeholder="Enter text to translate..."
-              className="min-h-[180px] resize-none overflow-y-auto p-6"
-            />
-            <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-              <span>From: {INPUT_LANGUAGES.find((lang) => lang.value === sourceLanguage)?.label}</span>
-              <span>
-                {inputText.length} / {CHARACTER_LIMIT}
-              </span>
+            <div className="flex flex-wrap gap-2 text-sm">
+              {QUICK_LANGUAGE_TABS.map((language) => {
+                const isActive = inputLanguage === language.value
+                return (
+                  <Button
+                    key={language.value}
+                    variant="ghost"
+                    size="sm"
+                    className={isActive ? "underline underline-offset-4" : ""}
+                    onClick={() => handleQuickLanguageSelect(language.value)}
+                  >
+                    {language.label}
+                  </Button>
+                )
+              })}
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                More…
+              </Button>
             </div>
           </div>
 
-          {/* Translate button */}
-          <div className="space-y-2">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <ArrowLeftRight className="h-5 w-5 opacity-40" aria-hidden="true" />
+            <div className="flex items-center gap-2 rounded-full border px-4 py-2 text-foreground/80">
+              <Lock className="h-4 w-4" aria-hidden="true" />
+              <span className="font-medium">{TARGET_LANGUAGE_LABEL}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Panels */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Input Panel */}
+        <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <Textarea
+            value={inputText}
+            onChange={(event) =>
+              setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
+            }
+            placeholder="Enter text to translate..."
+            className="min-h-[260px] resize-none border-0 p-0 text-base leading-relaxed focus-visible:ring-0"
+          />
+          <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
             <Button
-              onClick={handleTranslate}
-              disabled={isTranslating || !inputText.trim()}
-              className="w-full"
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleMicInput}
+              title="Speak"
             >
-              {isTranslating ? "Translating..." : "Translate to Luxembourgish"}
+              <Mic className="h-5 w-5" />
             </Button>
-            {error && (
-              <p className="text-sm text-red-600">
-                {error}
-              </p>
+            <span>{characterCount}</span>
+          </div>
+        </section>
+
+        {/* Output Panel */}
+        <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5 shadow-sm">
+          <div className="min-h-[260px] whitespace-pre-wrap text-base leading-relaxed text-foreground/80">
+            {translation ? (
+              translation
+            ) : (
+              <span className="text-muted-foreground">Translation will appear here...</span>
             )}
           </div>
-
-          {/* Output section */}
-          <div className="flex flex-col flex-1 min-h-0">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Luxembourgish Translation</h3>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopy}
-                  disabled={!outputText}
-                >
-                  Copy
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClear}
-                  disabled={!inputText && !outputText}
-                >
-                  Clear
-                </Button>
-              </div>
-            </div>
-            <div className="flex-1 min-h-0 rounded-lg border bg-background p-6 text-sm text-muted-foreground overflow-auto">
-              {outputText || (
-                <span className="text-muted-foreground/80">Translation will appear here...</span>
-              )}
-            </div>
+          <div className="mt-4 flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              title="Listen to pronunciation"
+              onClick={handlePronunciation}
+              disabled={!translation}
+            >
+              <Volume2 className="h-5 w-5" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              title="Copy translation"
+              onClick={handleCopy}
+              disabled={!translation}
+            >
+              <Copy className="h-5 w-5" />
+            </Button>
             {copyMessage && (
-              <p className="mt-2 text-xs text-muted-foreground">{copyMessage}</p>
+              <span className="text-xs text-muted-foreground">{copyMessage}</span>
             )}
           </div>
-        </div>
+        </section>
+      </div>
 
-        {/* Divider */}
-        <div className="hidden md:block w-px bg-border mx-4" aria-hidden="true" />
-
-        {/* Right Pane: Settings */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="pb-4">
-            <h2 className="text-2xl font-semibold">Settings</h2>
-            <p className="text-sm text-muted-foreground mt-1">Translation parameters</p>
-          </div>
-          <div className="flex-1 min-h-0 overflow-auto text-sm text-muted-foreground">
-            Additional translation tuning controls will live here. Configure tone,
-            domain-specific glossaries, or custom voices once the translation API is connected.
-          </div>
-        </div>
+      {/* Translate Button */}
+      <div className="flex flex-col items-center gap-2">
+        <Button
+          onClick={handleTranslate}
+          disabled={isTranslating || !inputText.trim()}
+          size="lg"
+          className="w-full md:w-auto px-10"
+        >
+          {isTranslating ? "Translating..." : "Translate to Luxembourgish"}
+        </Button>
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
       </div>
     </div>
   )

@@ -12,6 +12,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import { useSidebar } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
 
 const PAGE_TITLE_MAP: Record<string, string> = {
   "/": "Demo Application",
@@ -43,16 +45,26 @@ function getPageTitle(pathname: string | null): string {
 
 export function DashboardTopBar() {
   const pathname = usePathname()
+  const { state } = useSidebar()
 
   const pageTitle = useMemo(() => getPageTitle(pathname), [pathname])
+  
+  // Determine left position based on sidebar state
+  // Expanded: left-64 (16rem = 256px), Collapsed: left-16 (4rem = 64px)
+  const isSidebarOpen = state === "expanded"
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b bg-background md:left-[var(--sidebar-width)]">
-      <div className="flex h-full items-center justify-between px-4 md:px-6">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{pageTitle}</h1>
-        </div>
-        <div className="flex items-center gap-2">
+    <header 
+      className={cn(
+        "fixed top-0 left-0 right-0 h-14 border-b bg-background z-50 transition-all duration-300",
+        // On mobile: full width (left-0)
+        // On desktop: adjust based on sidebar state
+        isSidebarOpen ? "md:left-64" : "md:left-16" // Expanded: 16rem, Collapsed: 4rem
+      )}
+    >
+      <div className="flex h-full items-center justify-between px-6">
+        <h1 className="text-xl font-semibold">{pageTitle}</h1>
+        <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
