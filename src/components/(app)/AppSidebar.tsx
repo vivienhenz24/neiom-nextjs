@@ -48,16 +48,18 @@ export function AppSidebar() {
     window.location.href = "/"
   }
   
+  const triggerClassName = state === "collapsed" ? "h-8 w-8" : "ml-auto"
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-4">
+        <div className="flex items-center gap-2 px-2 py-2">
           {state === "collapsed" ? (
-            <SidebarTrigger />
+            <SidebarTrigger className={triggerClassName} />
           ) : (
             <>
               <h2 className="text-lg font-semibold">Neiom</h2>
-              <SidebarTrigger className="ml-auto" />
+              <SidebarTrigger className={triggerClassName} />
             </>
           )}
         </div>
