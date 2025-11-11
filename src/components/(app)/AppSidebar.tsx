@@ -19,6 +19,7 @@ import {
 import { authClient } from "@/lib/auth-client"
 import { useLocale } from "@/components/LocaleProvider"
 import { getNestedTranslations } from "@/lib/i18n"
+import { cn } from "@/lib/utils"
 
 export function AppSidebar() {
   const { state } = useSidebar()
@@ -49,11 +50,15 @@ export function AppSidebar() {
   }
   
   const triggerClassName = state === "collapsed" ? "h-8 w-8" : "ml-auto"
+  const headerInnerClassName = cn(
+    "flex items-center gap-2",
+    state === "collapsed" ? "py-2" : "px-2 py-2"
+  )
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-2">
+        <div className={headerInnerClassName}>
           {state === "collapsed" ? (
             <SidebarTrigger className={triggerClassName} />
           ) : (
