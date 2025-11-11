@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Home, LogOut, TestTube } from "lucide-react"
+import { Home, Languages, LogOut } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -25,9 +25,9 @@ const applicationItems = [
     href: "/",
   },
   {
-    title: "Test",
-    icon: TestTube,
-    href: "/test",
+    title: "Translate",
+    icon: Languages,
+    href: "/translate",
   },
 ]
 
@@ -90,4 +90,3 @@ export function AppSidebar() {
     </Sidebar>
   )
 }
-

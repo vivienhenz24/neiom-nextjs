@@ -15,7 +15,7 @@ import {
 
 const PAGE_TITLE_MAP: Record<string, string> = {
   "/": "Demo Application",
-  "/test": "Test",
+  "/translate": "Translate",
 }
 
 function getPageTitle(pathname: string | null): string {
@@ -87,4 +87,3 @@ export function DashboardTopBar() {
     </header>
   )
 }
-
