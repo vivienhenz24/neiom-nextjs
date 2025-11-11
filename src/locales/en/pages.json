@@ -35,6 +35,45 @@
     "missionContent": "Neiom is developing text-to-speech technology for the Luxembourgish language. Our mission is to make Luxembourgish content accessible through high-quality voice synthesis.\n\n**What We Do**\n\nWe create text-to-speech solutions that:\n• Generate natural-sounding Luxembourgish audio\n• Support accessibility for digital content\n• Enable cost-effective audio production\n• Preserve the unique character of Luxembourgish\n\n**Our Technology**\n\nOur TTS system is designed specifically for Luxembourgish, capturing the language's unique pronunciation and intonation patterns.\n\n**Contact Us**\n\nFor more information, please contact us at vhenz@college.harvard.edu",
     "technologyContent": "Our Luxembourgish text-to-speech technology is built on advanced machine learning models trained specifically on Luxembourgish language data.\n\n**Technical Features**\n\n• Neural network-based voice synthesis\n• Real-time audio generation\n• High-quality output (44.1kHz)\n• Customizable voice parameters\n• API integration support\n\n**Performance**\n\n• Sub-second generation time\n• Natural pronunciation patterns\n• Consistent voice characteristics\n• Scalable infrastructure\n\n**Integration**\n\n• RESTful API endpoints\n• SDK support for developers\n• Cloud-based processing\n• Enterprise-grade security",
     "contactContent": "Ready to integrate Luxembourgish text-to-speech into your project? We're here to help you get started.\n\n**Get Started**\n\n• Free consultation call\n• Custom integration support\n• Technical documentation\n• Sample implementations\n\n**Support**\n\n• Developer resources\n• API documentation\n• Best practices guide\n• Community forum\n\n**Contact Information**\n\nEmail: vhenz@college.harvard.edu\nResponse time: Within 24 hours\n\nFor enterprise inquiries, please schedule a consultation call."
+  },
+  "dashboard": {
+    "test": {
+      "title": "Test Page",
+      "description": "This is a test page to verify the top bar works correctly across different pages."
+    },
+    "demo": {
+      "title": "Demo Text to Speech Dialogue",
+      "promptLabel": "Enter your prompt or text",
+      "promptPlaceholder": "Type your text here...",
+      "submit": "Submit",
+      "clear": "Clear",
+      "settings": {
+        "title": "Settings",
+        "subtitle": "TTS Parameters",
+        "description": "Configure language, voice, speaking rate, pitch, and output options here. Controls coming soon."
+      }
+    },
+    "topBar": {
+      "pageTitles": {
+        "dashboard": "Dashboard",
+        "demoApplication": "Demo Application",
+        "test": "Test"
+      },
+      "feedback": {
+        "button": "Feedback",
+        "label": "Feedback",
+        "submitFeedback": "Submit Feedback",
+        "viewFeedback": "View Feedback",
+        "reportIssue": "Report an Issue"
+      },
+      "help": {
+        "button": "Help",
+        "label": "Help",
+        "documentation": "Documentation",
+        "contactSupport": "Contact Support",
+        "keyboardShortcuts": "Keyboard Shortcuts"
+      }
+    }
   }
 }
 
