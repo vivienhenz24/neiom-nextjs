@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useLocale } from "@/components/LocaleProvider"
-import { authClient } from "@/lib/auth-client"
 
 export default function LoginForm() {
   const { t } = useLocale();
@@ -17,13 +16,18 @@ export default function LoginForm() {
     setError(null)
     
     try {
-      const result = await authClient.signIn.email({
-        email,
-        password,
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ email, password }),
       })
 
-      if (result.error) {
-        setError(result.error.message || "Invalid email or password")
+      if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        setError(data?.error || "Invalid email or password")
         setIsLoading(false)
         return
       }

@@ -16,7 +16,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { authClient } from "@/lib/auth-client"
 import { useLocale } from "@/components/LocaleProvider"
 import { getNestedTranslations } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -40,13 +39,13 @@ export function AppSidebar() {
   ]
   
   const handleSignOut = async () => {
-    await authClient.signOut()
-    
-    // In dev mode, set a cookie flag to prevent getDevSession from returning a mock session
-    // Always set this cookie - getDevSession will only check it in dev mode
-    document.cookie = "neiom-dev-signed-out=true; path=/; max-age=86400" // 24 hours
-    
-    window.location.href = "/"
+    try {
+      await fetch("/api/logout", { method: "POST" })
+    } finally {
+      // In dev mode, set a cookie flag to prevent the fallback session from auto logging in
+      document.cookie = "neiom-dev-signed-out=true; path=/; max-age=86400"
+      window.location.href = "/"
+    }
   }
   
   const triggerClassName = state === "collapsed" ? "h-8 w-8" : "ml-auto"
