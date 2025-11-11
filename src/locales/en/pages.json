@@ -57,6 +57,7 @@
       "pageTitles": {
         "dashboard": "Dashboard",
         "demoApplication": "Demo Application",
+        "translate": "Translate",
         "test": "Test"
       },
       "feedback": {
@@ -73,6 +74,28 @@
         "contactSupport": "Contact Support",
         "keyboardShortcuts": "Keyboard Shortcuts"
       }
+    },
+    "translate": {
+      "selectLanguage": "Select language",
+      "selectLanguagePlaceholder": "Select language",
+      "luxembourgish": "Luxembourgish",
+      "enterTextPlaceholder": "Enter text to translate...",
+      "translationWillAppear": "Translation will appear here...",
+      "speak": "Speak",
+      "listenToPronunciation": "Listen to pronunciation",
+      "copyTranslation": "Copy translation",
+      "copiedToClipboard": "Copied to clipboard",
+      "copyFailed": "Copy failed",
+      "translating": "Translating...",
+      "translateToLuxembourgish": "Translate to Luxembourgish",
+      "enterTextBeforeTranslation": "Enter text before requesting a translation.",
+      "unableToTranslate": "Unable to translate right now. Please try again."
+    },
+    "sidebar": {
+      "application": "Application",
+      "demoApplication": "Demo Application",
+      "translate": "Translate",
+      "signOut": "Sign Out"
     }
   }
 }

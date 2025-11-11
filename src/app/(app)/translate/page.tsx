@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mic, Volume2, Copy, ArrowLeftRight, Lock } from "lucide-react"
+import { Mic, Volume2, Copy, Lock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,9 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { translateText } from "@/lib/translation"
+import { useLocale } from "@/components/LocaleProvider"
+import { getNestedTranslations } from "@/lib/i18n"
 
 const LANGUAGE_OPTIONS = [
-  { label: "Detect language", value: "detect" },
   { label: "French", value: "fr" },
   { label: "English", value: "en" },
   { label: "Luxembourgish", value: "lb" },
@@ -28,30 +29,26 @@ const LANGUAGE_OPTIONS = [
   { label: "Romanian", value: "ro" },
 ]
 
-const QUICK_LANGUAGE_TABS = [
-  { label: "French", value: "fr" },
-  { label: "English", value: "en" },
-  { label: "Luxembourgish", value: "lb" },
-  { label: "Spanish", value: "es" },
-  { label: "German", value: "de" },
-  { label: "Portuguese", value: "pt" },
-]
-
 const TARGET_LANGUAGE = "lb"
-const TARGET_LANGUAGE_LABEL = "Luxembourgish"
 const CHARACTER_LIMIT = 5000
 
 export default function TranslatePage() {
-  const [inputLanguage, setInputLanguage] = useState("detect")
+  const { locale } = useLocale()
+  const t = getNestedTranslations(locale).pages.dashboard.translate
+  const tTopBar = getNestedTranslations(locale).pages.dashboard.topBar
+  
+  const [inputLanguage, setInputLanguage] = useState("en")
   const [inputText, setInputText] = useState("")
   const [translation, setTranslation] = useState("")
   const [isTranslating, setIsTranslating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
+  
+  const TARGET_LANGUAGE_LABEL = t.luxembourgish
 
   const handleTranslate = async () => {
     if (!inputText.trim()) {
-      setError("Enter text before requesting a translation.")
+      setError(t.enterTextBeforeTranslation)
       return
     }
 
@@ -68,7 +65,7 @@ export default function TranslatePage() {
       setTranslation(translation)
     } catch (err) {
       console.error("Translation failed", err)
-      setError("Unable to translate right now. Please try again.")
+      setError(t.unableToTranslate)
     } finally {
       setIsTranslating(false)
     }
@@ -84,16 +81,12 @@ export default function TranslatePage() {
 
     try {
       await navigator.clipboard.writeText(translation)
-      setCopyMessage("Copied to clipboard")
+      setCopyMessage(t.copiedToClipboard)
       setTimeout(() => setCopyMessage(null), 2000)
     } catch {
-      setCopyMessage("Copy failed")
+      setCopyMessage(t.copyFailed)
       setTimeout(() => setCopyMessage(null), 2000)
     }
-  }
-
-  const handleQuickLanguageSelect = (value: string) => {
-    setInputLanguage(value)
   }
 
   const handleMicInput = () => {
@@ -107,10 +100,10 @@ export default function TranslatePage() {
       {/* Language Bar */}
       <div className="rounded-2xl border border-border bg-background/90 p-4 md:p-5 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex-1 space-y-3">
+          <div className="flex-1">
             <Select value={inputLanguage} onValueChange={setInputLanguage}>
               <SelectTrigger className="w-full md:w-72">
-                <SelectValue placeholder="Detect language" />
+                <SelectValue placeholder={t.selectLanguagePlaceholder} />
               </SelectTrigger>
               <SelectContent>
                 {LANGUAGE_OPTIONS.map((language) => (
@@ -120,30 +113,9 @@ export default function TranslatePage() {
                 ))}
               </SelectContent>
             </Select>
-
-            <div className="flex flex-wrap gap-2 text-sm">
-              {QUICK_LANGUAGE_TABS.map((language) => {
-                const isActive = inputLanguage === language.value
-                return (
-                  <Button
-                    key={language.value}
-                    variant="ghost"
-                    size="sm"
-                    className={isActive ? "underline underline-offset-4" : ""}
-                    onClick={() => handleQuickLanguageSelect(language.value)}
-                  >
-                    {language.label}
-                  </Button>
-                )
-              })}
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                More…
-              </Button>
-            </div>
           </div>
 
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <ArrowLeftRight className="h-5 w-5 opacity-40" aria-hidden="true" />
+          <div className="flex items-center gap-2 text-sm">
             <div className="flex items-center gap-2 rounded-full border px-4 py-2 text-foreground/80">
               <Lock className="h-4 w-4" aria-hidden="true" />
               <span className="font-medium">{TARGET_LANGUAGE_LABEL}</span>
@@ -161,7 +133,7 @@ export default function TranslatePage() {
             onChange={(event) =>
               setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
             }
-            placeholder="Enter text to translate..."
+            placeholder={t.enterTextPlaceholder}
             className="min-h-[260px] resize-none border-0 p-0 text-base leading-relaxed focus-visible:ring-0"
           />
           <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
@@ -170,7 +142,7 @@ export default function TranslatePage() {
               variant="ghost"
               size="icon"
               onClick={handleMicInput}
-              title="Speak"
+              title={t.speak}
             >
               <Mic className="h-5 w-5" />
             </Button>
@@ -184,7 +156,7 @@ export default function TranslatePage() {
             {translation ? (
               translation
             ) : (
-              <span className="text-muted-foreground">Translation will appear here...</span>
+              <span className="text-muted-foreground">{t.translationWillAppear}</span>
             )}
           </div>
           <div className="mt-4 flex items-center gap-2">
@@ -192,7 +164,7 @@ export default function TranslatePage() {
               type="button"
               variant="ghost"
               size="icon"
-              title="Listen to pronunciation"
+              title={t.listenToPronunciation}
               onClick={handlePronunciation}
               disabled={!translation}
             >
@@ -202,7 +174,7 @@ export default function TranslatePage() {
               type="button"
               variant="ghost"
               size="icon"
-              title="Copy translation"
+              title={t.copyTranslation}
               onClick={handleCopy}
               disabled={!translation}
             >
@@ -223,7 +195,7 @@ export default function TranslatePage() {
           size="lg"
           className="w-full md:w-auto px-10"
         >
-          {isTranslating ? "Translating..." : "Translate to Luxembourgish"}
+          {isTranslating ? t.translating : t.translateToLuxembourgish}
         </Button>
         {error && (
           <p className="text-sm text-red-600">{error}</p>

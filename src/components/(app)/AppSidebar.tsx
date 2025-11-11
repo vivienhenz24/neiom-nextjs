@@ -17,22 +17,26 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { authClient } from "@/lib/auth-client"
-
-const applicationItems = [
-  {
-    title: "Demo Application",
-    icon: Home,
-    href: "/",
-  },
-  {
-    title: "Translate",
-    icon: Languages,
-    href: "/translate",
-  },
-]
+import { useLocale } from "@/components/LocaleProvider"
+import { getNestedTranslations } from "@/lib/i18n"
 
 export function AppSidebar() {
   const { state } = useSidebar()
+  const { locale } = useLocale()
+  const t = getNestedTranslations(locale).pages.dashboard.sidebar
+
+  const applicationItems = [
+    {
+      title: t.demoApplication,
+      icon: Home,
+      href: "/",
+    },
+    {
+      title: t.translate,
+      icon: Languages,
+      href: "/translate",
+    },
+  ]
   
   const handleSignOut = async () => {
     await authClient.signOut()
@@ -60,7 +64,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>{t.application}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {applicationItems.map((item) => (
@@ -82,7 +86,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton onClick={handleSignOut}>
               <LogOut />
-              <span>Sign Out</span>
+              <span>{t.signOut}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

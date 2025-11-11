@@ -4,8 +4,12 @@ import { useState } from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { useLocale } from "@/components/LocaleProvider"
+import { getNestedTranslations } from "@/lib/i18n"
 
 export default function Homepage() {
+  const { locale } = useLocale()
+  const t = getNestedTranslations(locale).pages.dashboard.demo
   const [text, setText] = useState("")
   const maxLength = 1000
 
@@ -24,19 +28,19 @@ export default function Homepage() {
         {/* Left Pane: Prompt/Input (fills entire left half) */}
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="pb-4">
-            <h1 className="text-2xl font-semibold">Demo Text to Speech Dialogue</h1>
+            <h1 className="text-2xl font-semibold">{t.title}</h1>
           </div>
           <form onSubmit={onSubmit} className="flex-1 min-h-0 flex flex-col gap-3">
             <div className="flex-1 min-h-0 flex flex-col gap-2">
               <div>
-                <Label htmlFor="prompt">Enter your prompt or text</Label>
+                <Label htmlFor="prompt">{t.promptLabel}</Label>
               </div>
               <div className="flex-1 min-h-0">
                 <Textarea
                   id="prompt"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="Type your text here..."
+                  placeholder={t.promptPlaceholder}
                   maxLength={maxLength}
                   className="h-full w-full min-h-0 flex-1 resize-none overflow-y-auto"
                 />
@@ -46,8 +50,8 @@ export default function Homepage() {
               </div>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button type="submit" disabled={!text.trim()}>Submit</Button>
-              <Button type="button" variant="outline" onClick={onClear} disabled={!text}>Clear</Button>
+              <Button type="submit" disabled={!text.trim()}>{t.submit}</Button>
+              <Button type="button" variant="outline" onClick={onClear} disabled={!text}>{t.clear}</Button>
             </div>
           </form>
         </div>
@@ -58,14 +62,13 @@ export default function Homepage() {
         {/* Right Pane: Settings/Parameters (fills entire right half) */}
         <div className="flex-1 min-w-0 flex flex-col">
           <div className="pb-4">
-            <h2 className="text-2xl font-semibold">Settings</h2>
-            <p className="text-sm text-muted-foreground">TTS Parameters</p>
+            <h2 className="text-2xl font-semibold">{t.settings.title}</h2>
+            <p className="text-sm text-muted-foreground">{t.settings.subtitle}</p>
           </div>
           <div className="flex-1 min-h-0 overflow-auto">
             {/* Placeholder for future interactive controls */}
             <div className="text-sm text-muted-foreground">
-              Configure language, voice, speaking rate, pitch, and output options here.
-              Controls coming soon.
+              {t.settings.description}
             </div>
           </div>
         </div>
