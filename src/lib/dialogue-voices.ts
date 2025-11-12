@@ -11,22 +11,25 @@ export type DialogueVoicePair = {
 const DEFAULT_DIALOGUE_MODEL_ID = process.env.ELEVENLABS_DIALOGUE_MODEL_ID?.trim()
 const DEFAULT_DIALOGUE_OUTPUT_FORMAT = "mp3_44100_128"
 
+// Voice IDs below were chosen from ElevenLabs' premade catalog where
+// `verifiedLanguages` explicitly list the target locale, ensuring each
+// speaker can natively cover that language.
 const DIALOGUE_LANGUAGE_VOICES: Record<string, DialogueVoicePair> = {
   en: {
-    speakerA: { voiceId: "JBFqnCBsd6RMkjVDRZzb", label: "Matilda" },
+    speakerA: { voiceId: "JBFqnCBsd6RMkjVDRZzb", label: "George" },
     speakerB: { voiceId: "ErXwobaYiN019PkySvjV", label: "Antoni" },
   },
   fr: {
-    speakerA: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Bella" },
-    speakerB: { voiceId: "MF3mGyEYCl7XYWbV9V6O", label: "Elli" },
+    speakerA: { voiceId: "Xb7hH8MSUJpSbSDYk0k2", label: "Alice" },
+    speakerB: { voiceId: "CwhRBWXzGAHq8TQ4Fs17", label: "Roger" },
   },
   de: {
-    speakerA: { voiceId: "VR6AewLTigWG4xSOukaG", label: "Arnold" },
-    speakerB: { voiceId: "AZnzlk1XvdvUeBnXmlld", label: "Domi" },
+    speakerA: { voiceId: "onwK4e9ZLuTAKqWW03F9", label: "Daniel" },
+    speakerB: { voiceId: "cgSgspJ2msm6clMCkdW9", label: "Jessica" },
   },
   pt: {
-    speakerA: { voiceId: "TxGEqnHWrfWFTfGW9XjX", label: "Josh" },
-    speakerB: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam" },
+    speakerA: { voiceId: "cjVigY5qzO86Huf0OWal", label: "Eric" },
+    speakerB: { voiceId: "SAz9YHcvj6GT2YYXdXww", label: "River" },
   },
 }
 
