@@ -1,10 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import ChatInputBar from "@/components/(app)/ChatInputBar";
 import { Textarea } from "@/components/ui/textarea";
-import { AlignmentPayload, buildWordTimings, WordTiming } from "@/lib/dialogue-highlighting";
+import {
+  AlignmentPayload,
+  WordTiming,
+  buildWordTimingsFromAlignment,
+} from "@/lib/dialogue-highlighting";
+import { buildTranscriptFromEntries, parseDialogueEntries } from "@/lib/dialogue-text";
 import { cn } from "@/lib/utils";
 import { Loader2, Volume2 } from "lucide-react";
 
@@ -18,13 +23,19 @@ const LANGUAGE_OPTIONS = [
 ];
 const SPEAKER_A_NAME = "Speaker A";
 const SPEAKER_B_NAME = "Speaker B";
-const WHITESPACE_SEGMENT = /^\s+$/;
 
 type DialogueAudioResponseBody = {
   audioBase64?: string;
   alignment?: AlignmentPayload;
   normalizedAlignment?: AlignmentPayload;
+  transcript?: string;
   error?: string;
+};
+
+type HighlightRange = {
+  start: number;
+  end: number;
+  wordIndex: number;
 };
 
 const base64ToBlob = (audioBase64: string, mimeType = "audio/mpeg") => {
@@ -58,6 +69,7 @@ export default function Homepage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioObjectUrlRef = useRef<string | null>(null);
   const highlightOverlayRef = useRef<HTMLDivElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const [generatedDialogue, setGeneratedDialogue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -67,10 +79,89 @@ export default function Homepage() {
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [audioScriptSnapshot, setAudioScriptSnapshot] = useState("");
+  const [audioTranscript, setAudioTranscript] = useState("");
   const [wordTimings, setWordTimings] = useState<WordTiming[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  const dialogueEntries = useMemo(() => parseDialogueEntries(generatedDialogue), [generatedDialogue]);
+  const localTranscript = useMemo(
+    () => buildTranscriptFromEntries(dialogueEntries),
+    [dialogueEntries]
+  );
+  const trimmedDialogue = generatedDialogue.trim();
+  const hasDialogue = Boolean(trimmedDialogue);
+  const isAudioInSync = Boolean(
+    audioTranscript && localTranscript && audioTranscript === localTranscript
+  );
+  const highlightRanges = useMemo<HighlightRange[]>(() => {
+    if (
+      !audioUrl ||
+      !isAudioInSync ||
+      !wordTimings.length ||
+      dialogueEntries.length === 0
+    ) {
+      return [];
+    }
+
+    const ranges: HighlightRange[] = [];
+
+    wordTimings.forEach((timing) => {
+      const overlappingEntries = dialogueEntries.filter(
+        (entry) =>
+          timing.transcriptStartIndex < entry.transcriptEndIndex &&
+          timing.transcriptEndIndex > entry.transcriptStartIndex
+      );
+
+      overlappingEntries.forEach((entry) => {
+        if (!entry.normalizedToOriginalMap.length) {
+          return;
+        }
+
+        const entryRelativeStart = Math.max(
+          0,
+          timing.transcriptStartIndex - entry.transcriptStartIndex
+        );
+        const entryRelativeEnd = Math.max(
+          entryRelativeStart + 1,
+          Math.min(timing.transcriptEndIndex, entry.transcriptEndIndex) - entry.transcriptStartIndex
+        );
+
+        const map = entry.normalizedToOriginalMap;
+        const clamp = (value: number) =>
+          map[Math.min(Math.max(value, 0), map.length - 1)] ?? entry.spokenStartIndex;
+
+        const originalStart = clamp(entryRelativeStart);
+        const originalEnd = clamp(entryRelativeEnd - 1) + 1;
+
+        ranges.push({
+          start: originalStart,
+          end: originalEnd,
+          wordIndex: timing.wordIndex,
+        });
+      });
+    });
+
+    const sorted = ranges.sort((a, b) => a.start - b.start);
+    console.log("[dialogue highlighting] Computed highlight ranges", {
+      rangeCount: sorted.length,
+      dialogueEntryCount: dialogueEntries.length,
+      isAudioInSync,
+      hasWordTimings: wordTimings.length > 0,
+      rangesDetail: sorted.map((range) => ({
+        ...range,
+        text: generatedDialogue.slice(range.start, range.end),
+      })),
+    });
+    return sorted;
+  }, [audioUrl, isAudioInSync, wordTimings, dialogueEntries]);
+  const highlightEnabled = Boolean(
+    audioUrl &&
+      isAudioInSync &&
+      wordTimings.length > 0 &&
+      highlightRanges.length > 0 &&
+    highlightRanges.length > 0
+  );
 
   useEffect(() => {
     return () => {
@@ -92,6 +183,19 @@ export default function Homepage() {
     }
   }, [generatedDialogue, isGenerating]);
 
+  const resetAudioState = useCallback(() => {
+    if (audioObjectUrlRef.current) {
+      URL.revokeObjectURL(audioObjectUrlRef.current);
+      audioObjectUrlRef.current = null;
+    }
+    setAudioUrl(null);
+    setAudioTranscript("");
+    setWordTimings([]);
+    setActiveWordIndex(null);
+    setIsAudioPlaying(false);
+    setAudioError(null);
+  }, []);
+
   const handlePromptSubmit = useCallback(
     async (prompt: string) => {
       const trimmedPrompt = prompt.trim();
@@ -103,6 +207,7 @@ export default function Homepage() {
 
       setError(null);
       setIsGenerating(true);
+      resetAudioState();
       setGeneratedDialogue("");
 
       try {
@@ -163,13 +268,8 @@ export default function Homepage() {
         setIsGenerating(false);
       }
     },
-    [selectedLanguage, turnCount]
+    [resetAudioState, selectedLanguage, turnCount]
   );
-
-  const trimmedDialogue = generatedDialogue.trim();
-  const hasDialogue = Boolean(trimmedDialogue);
-  const isAudioInSync = Boolean(audioUrl && audioScriptSnapshot === generatedDialogue);
-  const highlightEnabled = Boolean(isAudioInSync && wordTimings.length > 0);
 
   const handleGenerateAudio = useCallback(async () => {
     const script = generatedDialogue.trim();
@@ -179,6 +279,7 @@ export default function Homepage() {
 
     setIsGeneratingAudio(true);
     setAudioError(null);
+    console.log("[dialogue audio] Sending script to API:\n", script);
 
     try {
       const response = await fetch("/api/dialogue/audio", {
@@ -204,14 +305,27 @@ export default function Homepage() {
         URL.revokeObjectURL(audioObjectUrlRef.current);
       }
 
+      console.log("[dialogue audio] Payload received from API", {
+        hasAudio: Boolean(payload.audioBase64),
+        transcriptLength: payload.transcript?.length ?? 0,
+        alignmentCharacters: payload.alignment?.characters?.length ?? 0,
+        normalizedAlignmentCharacters: payload.normalizedAlignment?.characters?.length ?? 0,
+      });
+      if (payload) {
+        const { audioBase64, ...rest } = payload;
+        console.log("[dialogue audio] Full payload (excluding audio data)", rest);
+      }
+
       const blob = base64ToBlob(payload.audioBase64);
       const objectUrl = URL.createObjectURL(blob);
       audioObjectUrlRef.current = objectUrl;
       setAudioUrl(objectUrl);
-      setAudioScriptSnapshot(script);
       setIsAudioPlaying(false);
 
-      const timings = buildWordTimings(script, payload.alignment ?? payload.normalizedAlignment);
+      const alignmentPayload = payload.normalizedAlignment ?? payload.alignment ?? null;
+      const { transcript, timings } = buildWordTimingsFromAlignment(alignmentPayload);
+
+      setAudioTranscript(payload.transcript ?? transcript);
       setWordTimings(timings);
       setActiveWordIndex(null);
     } catch (err) {
@@ -292,6 +406,39 @@ export default function Homepage() {
   }, [audioUrl, wordTimings]);
 
   useEffect(() => {
+    const stopTracking = () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+
+    if (!isAudioPlaying || !wordTimings.length) {
+      stopTracking();
+      return;
+    }
+
+    const tick = () => {
+      const audioElement = audioRef.current;
+      if (!audioElement) {
+        stopTracking();
+        return;
+      }
+
+      setActiveWordIndex(findActiveWordIndex(audioElement.currentTime, wordTimings));
+      animationFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(tick);
+
+    return stopTracking;
+  }, [isAudioPlaying, wordTimings]);
+
+  useEffect(() => {
+    if (!highlightEnabled) {
+      return;
+    }
+
     const textarea = textareaRef.current;
     const overlay = highlightOverlayRef.current;
 
@@ -309,49 +456,60 @@ export default function Homepage() {
     return () => {
       textarea.removeEventListener("scroll", syncScroll);
     };
-  }, []);
+  }, [highlightEnabled]);
 
-  const renderDialogueSegments = (
-    text: string,
-    timings: WordTiming[],
-    activeIndex: number | null
-  ) => {
-    if (!text) {
-      return (
-        <span className="text-muted-foreground">
-          Describe the dialogue scenario or paste your script...
-        </span>
-      );
+  const renderHighlightedDialogue = () => {
+    if (!highlightEnabled || !highlightRanges.length) {
+      return null;
     }
 
-    const segments = text.split(/(\s+)/);
-    let wordPointer = 0;
+    const fragments: Array<{ text: string; active: boolean }> = [];
+    let cursor = 0;
 
-    return segments.map((segment, index) => {
-      if (!segment) return null;
-      if (WHITESPACE_SEGMENT.test(segment)) {
-        return (
-          <span key={`space-${index}`} className="whitespace-pre-wrap">
-            {segment}
-          </span>
-        );
+    highlightRanges.forEach((range) => {
+      const start = Math.max(0, Math.min(range.start, generatedDialogue.length));
+      const end = Math.max(start, Math.min(range.end, generatedDialogue.length));
+
+      if (start > cursor) {
+        fragments.push({
+          text: generatedDialogue.slice(cursor, start),
+          active: false,
+        });
       }
 
-      const isActive = wordPointer === activeIndex;
-      wordPointer += 1;
-      return (
-        <span
-          key={`word-${index}`}
-          className={cn("transition-colors", isActive && "font-semibold text-purple-700")}
-        >
-          {segment}
-        </span>
-      );
+      fragments.push({
+        text: generatedDialogue.slice(start, end),
+        active: range.wordIndex === activeWordIndex,
+      });
+      cursor = end;
     });
+
+    if (cursor < generatedDialogue.length) {
+      fragments.push({
+        text: generatedDialogue.slice(cursor),
+        active: false,
+      });
+    }
+
+    return (
+      <div className="whitespace-pre-wrap text-2xl leading-relaxed text-foreground">
+        {fragments.map((fragment, index) => (
+          <span
+            key={index}
+            className={cn(
+              "transition-colors",
+              fragment.active ? "font-semibold text-purple-700" : "text-foreground"
+            )}
+          >
+            {fragment.text}
+          </span>
+        ))}
+      </div>
+    );
   };
 
   const renderAudioControls = () => (
-    <div className="flex flex-col items-start gap-2 text-left">
+    <div className="flex flex-col items-center gap-2 text-center">
       <button
         type="button"
         onClick={handleDialogueAudioButtonClick}
@@ -396,30 +554,24 @@ export default function Homepage() {
           readOnly={isGenerating}
           placeholder="Describe the dialogue scenario or paste your script..."
           className={cn(
-            "h-full w-full resize-none border-none bg-transparent px-4 py-4 text-2xl leading-relaxed text-transparent caret-purple-600 focus-visible:border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+            "h-full w-full resize-none border-none bg-transparent px-4 py-4 text-2xl leading-relaxed caret-black focus-visible:border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none",
+            highlightEnabled && "text-transparent caret-purple-600"
           )}
         />
-        <div
-          ref={highlightOverlayRef}
-          className="pointer-events-none absolute inset-0 overflow-auto px-4 py-4 text-2xl leading-relaxed text-foreground/90"
-        >
-          <div aria-hidden="true">
-            {renderDialogueSegments(
-              generatedDialogue,
-              highlightEnabled ? wordTimings : [],
-              highlightEnabled ? activeWordIndex : null
-            )}
+        {highlightEnabled && (
+          <div
+            ref={highlightOverlayRef}
+            className="pointer-events-none absolute inset-0 overflow-auto px-4 py-4"
+            aria-hidden="true"
+          >
+            {renderHighlightedDialogue()}
           </div>
-          {hasDialogue && (
-            <div className="pointer-events-auto mt-8">
-              {renderAudioControls()}
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center px-6">
         <div className="pointer-events-auto flex w-full flex-col items-center justify-center gap-3">
+          {hasDialogue && <div className="flex justify-center">{renderAudioControls()}</div>}
           <ChatInputBar
             isSubmitting={isGenerating}
             onSubmitPrompt={handlePromptSubmit}

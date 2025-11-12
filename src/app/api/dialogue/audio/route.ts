@@ -35,12 +35,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await synthesizeDialogueAudio({
+    const { response, transcript } = await synthesizeDialogueAudio({
       script,
       language: payload.language,
     })
 
-    const { audioBase64, alignment, normalizedAlignment, voiceSegments } = result
+    const { audioBase64, alignment, normalizedAlignment, voiceSegments } = response
 
     if (!audioBase64) {
       throw new Error("The audio service did not return any audio data.")
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       alignment,
       normalizedAlignment,
       voiceSegments,
+      transcript,
     })
   } catch (error) {
     console.error("[dialogue audio API] Failed to generate audio", error)

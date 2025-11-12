@@ -3,12 +3,11 @@ import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js"
 import {
   DIALOGUE_MODEL_ID,
   DIALOGUE_OUTPUT_FORMAT,
-  DialogueVoicePair,
   getDialogueVoicesForLanguage,
 } from "@/lib/dialogue-voices"
+import { buildTranscriptFromEntries, parseDialogueEntries } from "@/lib/dialogue-text"
 
 const MAX_DIALOGUE_AUDIO_CHARACTERS = 5000
-const NEWLINE_REGEX = /\r?\n/g
 
 const client = new ElevenLabsClient({
   apiKey: process.env.ELEVENLABS_API_KEY,
@@ -19,17 +18,11 @@ type DialogueAudioRequest = {
   language?: string
 }
 
-const normalizeScriptLines = (script: string) =>
-  script
-    .replace(NEWLINE_REGEX, "\n")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
+const selectVoiceForEntry = (speakerLabel: string, index: number, languageCode?: string) => {
+  const voices = getDialogueVoicesForLanguage(languageCode)
+  const normalizedSpeaker = speakerLabel.trim().toLowerCase()
 
-const selectVoiceForLine = (line: string, voices: DialogueVoicePair, index: number) => {
-  const speakerMatch = line.match(/^([^:]+):/)
-  if (speakerMatch) {
-    const normalizedSpeaker = speakerMatch[1]?.trim().toLowerCase() ?? ""
+  if (normalizedSpeaker) {
     if (
       normalizedSpeaker.includes("b") ||
       normalizedSpeaker.includes("customer") ||
@@ -38,18 +31,17 @@ const selectVoiceForLine = (line: string, voices: DialogueVoicePair, index: numb
     ) {
       return voices.speakerB.voiceId
     }
-    return voices.speakerA.voiceId
+    if (
+      normalizedSpeaker.includes("a") ||
+      normalizedSpeaker.includes("agent") ||
+      normalizedSpeaker.includes("speaker 1") ||
+      normalizedSpeaker.includes("speaker one")
+    ) {
+      return voices.speakerA.voiceId
+    }
   }
 
   return index % 2 === 0 ? voices.speakerA.voiceId : voices.speakerB.voiceId
-}
-
-const buildDialogueInputs = (script: string, voices: DialogueVoicePair) => {
-  const lines = normalizeScriptLines(script)
-  return lines.map((line, index) => ({
-    text: line,
-    voiceId: selectVoiceForLine(line, voices, index),
-  }))
 }
 
 export const synthesizeDialogueAudio = async ({ script, language }: DialogueAudioRequest) => {
@@ -68,12 +60,25 @@ export const synthesizeDialogueAudio = async ({ script, language }: DialogueAudi
     )
   }
 
-  const voices = getDialogueVoicesForLanguage(language)
-  const inputs = buildDialogueInputs(trimmedScript, voices)
-
-  if (inputs.length === 0) {
+  const entries = parseDialogueEntries(trimmedScript)
+  if (!entries.length) {
     throw new Error("Unable to find dialogue lines to convert.")
   }
+
+  console.log("[dialogue audio] Full trimmed script being synthesized:\n", trimmedScript)
+
+  console.log("[dialogue audio] Preparing synthesis request", {
+    entryCount: entries.length,
+    totalCharacters: trimmedScript.length,
+    language: language ?? "default",
+  })
+
+  const inputs = entries.map((entry, index) => ({
+    text: entry.normalizedText,
+    voiceId: selectVoiceForEntry(entry.speakerLabel, index, language),
+  }))
+
+  console.log("[dialogue audio] Inputs detail", inputs)
 
   const requestPayload: Parameters<typeof client.textToDialogue.convertWithTimestamps>[0] = {
     outputFormat: DIALOGUE_OUTPUT_FORMAT,
@@ -85,7 +90,26 @@ export const synthesizeDialogueAudio = async ({ script, language }: DialogueAudi
     requestPayload.modelId = DIALOGUE_MODEL_ID
   }
 
-  return client.textToDialogue.convertWithTimestamps(requestPayload)
+  const response = await client.textToDialogue.convertWithTimestamps(requestPayload)
+  console.log("[dialogue audio] Received ElevenLabs response", {
+    hasAudio: Boolean(response.audioBase64),
+    alignmentCharacters: response.alignment?.characters?.length ?? 0,
+    normalizedAlignmentCharacters: response.normalizedAlignment?.characters?.length ?? 0,
+    voiceSegmentCount: response.voiceSegments?.length ?? 0,
+  })
+  console.log("[dialogue audio] Alignment transcript (raw)", response.alignment?.characters?.join(""))
+  console.log(
+    "[dialogue audio] Alignment transcript (normalized)",
+    response.normalizedAlignment?.characters?.join("")
+  )
+  if (response.voiceSegments?.length) {
+    console.log("[dialogue audio] Voice segments detail", response.voiceSegments)
+  }
+
+  return {
+    response,
+    transcript: buildTranscriptFromEntries(entries),
+  }
 }
 
 export { MAX_DIALOGUE_AUDIO_CHARACTERS }
