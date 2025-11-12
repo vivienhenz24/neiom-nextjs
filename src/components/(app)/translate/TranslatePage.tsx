@@ -109,12 +109,13 @@ export function TranslatePage() {
   }
 
   useEffect(() => {
+    const player = audioPlayerRef.current
     return () => {
       if (audioObjectUrlRef.current) {
         URL.revokeObjectURL(audioObjectUrlRef.current)
       }
-      if (audioPlayerRef.current) {
-        audioPlayerRef.current.pause()
+      if (player) {
+        player.pause()
       }
     }
   }, [])
@@ -431,8 +432,8 @@ export function TranslatePage() {
             onChange={(event) =>
               setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
             }
-              placeholder="Enter any text in any language"
-              className="flex-1 min-h-[180px] resize-none border-0 bg-transparent p-0 text-base leading-relaxed focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
+            placeholder="Enter any text in any language"
+            className="flex-1 min-h-[180px] resize-none border-0 bg-transparent p-0 text-2xl leading-relaxed focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
             maxLength={CHARACTER_LIMIT}
           />
             <div className="mt-4 flex items-center justify-end">
@@ -527,30 +528,30 @@ export function TranslatePage() {
                 className="hidden"
               />
               {translation ? (
-                <p className="whitespace-pre-wrap text-foreground/80">
+                <p className="whitespace-pre-wrap text-2xl leading-relaxed text-foreground/80">
                   {translation}{" "}
                   <button
                     type="button"
                     onClick={handlePronunciationButtonClick}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-[#4c1d95] hover:text-[#a855f7] transition-colors disabled:opacity-60"
+                    className="inline-flex items-center gap-2 text-2xl font-semibold text-[#4c1d95] hover:text-[#a855f7] transition-colors disabled:opacity-60"
                     disabled={isGeneratingAudio}
                     aria-busy={isGeneratingAudio}
                   >
                     {isGeneratingAudio ? (
                       <>
                         [<span>Generating pronunciation</span>
-                        <Loader2 className="h-4 w-4 animate-spin" />]
+                        <Loader2 className="h-6 w-6 animate-spin" />]
                       </>
                     ) : audioUrl ? (
                       <>
                         [<span>{isAudioPlaying ? "Pause pronunciation" : "Listen to pronunciation"}</span>
                         {isAudioPlaying ? (
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                             <rect x="6" y="4" width="4" height="16" />
                             <rect x="14" y="4" width="4" height="16" />
                           </svg>
                         ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                             <polygon points="5 3 19 12 5 21 5 3" />
                           </svg>
                         )}]
@@ -558,13 +559,13 @@ export function TranslatePage() {
                     ) : (
                       <>
                         [<span>Generate pronunciation</span>
-                        <Volume2 className="h-4 w-4" />]
+                        <Volume2 className="h-6 w-6" />]
                       </>
                     )}
                   </button>
                 </p>
               ) : (
-                <span className="text-muted-foreground">
+                <span className="text-2xl leading-relaxed text-muted-foreground">
                   {t.translationWillAppear}
                 </span>
               )}

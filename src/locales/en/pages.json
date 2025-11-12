@@ -99,7 +99,7 @@
     "topBar": {
       "pageTitles": {
         "dashboard": "Dashboard",
-        "demoApplication": "Demo Diaglogue INNL",
+        "demoApplication": "Demo Dialogue INNL",
         "translate": "Translate",
         "test": "Test"
       },
@@ -139,7 +139,7 @@
     },
     "sidebar": {
       "application": "Application",
-      "demoApplication": "Demo Diaglogue INNL",
+      "demoApplication": "Demo Dialogue INLL",
       "translate": "Translate",
       "signOut": "Sign Out"
     }
