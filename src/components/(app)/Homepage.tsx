@@ -3,11 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import ChatInputBar from "@/components/(app)/ChatInputBar";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AlignmentPayload, buildWordTimings, WordTiming } from "@/lib/dialogue-highlighting";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Volume2 } from "lucide-react";
 
 const MAX_DIALOGUE_LENGTH = 5000;
 const TURN_COUNT_OPTIONS = [6, 8, 10, 12];
@@ -71,6 +70,7 @@ export default function Homepage() {
   const [audioScriptSnapshot, setAudioScriptSnapshot] = useState("");
   const [wordTimings, setWordTimings] = useState<WordTiming[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -166,6 +166,11 @@ export default function Homepage() {
     [selectedLanguage, turnCount]
   );
 
+  const trimmedDialogue = generatedDialogue.trim();
+  const hasDialogue = Boolean(trimmedDialogue);
+  const isAudioInSync = Boolean(audioUrl && audioScriptSnapshot === generatedDialogue);
+  const highlightEnabled = Boolean(isAudioInSync && wordTimings.length > 0);
+
   const handleGenerateAudio = useCallback(async () => {
     const script = generatedDialogue.trim();
     if (!script || isGeneratingAudio) {
@@ -204,6 +209,7 @@ export default function Homepage() {
       audioObjectUrlRef.current = objectUrl;
       setAudioUrl(objectUrl);
       setAudioScriptSnapshot(script);
+      setIsAudioPlaying(false);
 
       const timings = buildWordTimings(script, payload.alignment ?? payload.normalizedAlignment);
       setWordTimings(timings);
@@ -220,6 +226,36 @@ export default function Homepage() {
     }
   }, [generatedDialogue, isGeneratingAudio, selectedLanguage]);
 
+  const handleDialogueAudioButtonClick = useCallback(() => {
+    if (isGeneratingAudio || isGenerating) {
+      return;
+    }
+
+    if (!audioUrl || !isAudioInSync) {
+      void handleGenerateAudio();
+      return;
+    }
+
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    if (isAudioPlaying) {
+      audio.pause();
+      return;
+    }
+
+    audio
+      .play()
+      .then(() => {
+        setIsAudioPlaying(true);
+      })
+      .catch(() => {
+        setIsAudioPlaying(false);
+      });
+  }, [audioUrl, handleGenerateAudio, isAudioInSync, isAudioPlaying, isGenerating, isGeneratingAudio]);
+
   useEffect(() => {
     const audioElement = audioRef.current;
     if (!audioElement || !audioUrl) {
@@ -234,16 +270,24 @@ export default function Homepage() {
 
     const handleEnded = () => {
       setActiveWordIndex(null);
+      setIsAudioPlaying(false);
     };
+
+    const handlePlay = () => setIsAudioPlaying(true);
+    const handlePause = () => setIsAudioPlaying(false);
 
     audioElement.addEventListener("timeupdate", handleTimeUpdate);
     audioElement.addEventListener("seeking", handleTimeUpdate);
     audioElement.addEventListener("ended", handleEnded);
+    audioElement.addEventListener("play", handlePlay);
+    audioElement.addEventListener("pause", handlePause);
 
     return () => {
       audioElement.removeEventListener("timeupdate", handleTimeUpdate);
       audioElement.removeEventListener("seeking", handleTimeUpdate);
       audioElement.removeEventListener("ended", handleEnded);
+      audioElement.removeEventListener("play", handlePlay);
+      audioElement.removeEventListener("pause", handlePause);
     };
   }, [audioUrl, wordTimings]);
 
@@ -267,11 +311,6 @@ export default function Homepage() {
       textarea.removeEventListener("scroll", syncScroll);
     };
   }, [audioUrl, audioScriptSnapshot, generatedDialogue, wordTimings.length]);
-
-  const trimmedDialogue = generatedDialogue.trim();
-  const hasDialogue = Boolean(trimmedDialogue);
-  const isAudioInSync = Boolean(audioUrl && audioScriptSnapshot === generatedDialogue);
-  const highlightEnabled = Boolean(isAudioInSync && wordTimings.length > 0);
 
   const renderDialogueSegments = (
     text: string,
@@ -337,52 +376,58 @@ export default function Homepage() {
         )}
       </div>
 
+      {hasDialogue && (
+        <div className="mt-4 px-4">
+          <button
+            type="button"
+            onClick={handleDialogueAudioButtonClick}
+            disabled={isGeneratingAudio || isGenerating}
+            aria-busy={isGeneratingAudio}
+            className="inline-flex items-center gap-2 text-lg font-semibold text-[#6b21a8] transition-colors hover:text-[#a855f7] disabled:opacity-60"
+          >
+            [
+            <span>
+              {isGeneratingAudio
+                ? "Generating dialogue audio"
+                : audioUrl && isAudioInSync
+                  ? isAudioPlaying
+                    ? "Pause dialogue audio"
+                    : "Play dialogue audio"
+                  : "Generate dialogue audio"}
+            </span>
+            {isGeneratingAudio ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Volume2 className="h-5 w-5" />
+            )}
+            ]
+          </button>
+          {audioUrl && (
+            <>
+              <audio
+                ref={audioRef}
+                src={audioUrl ?? undefined}
+                className="hidden"
+                preload="metadata"
+              />
+              {!isAudioInSync && (
+                <p className="mt-2 text-xs text-amber-600">
+                  The dialogue changed since this audio was generated. Generate again to sync
+                  highlights.
+                </p>
+              )}
+            </>
+          )}
+          {audioError && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {audioError}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center px-6">
         <div className="pointer-events-auto flex w-full flex-col items-center justify-center gap-3">
-          {hasDialogue && (
-            <div className="w-full max-w-3xl rounded-3xl border border-black/25 bg-muted/60 p-4 shadow-2xl shadow-black/20 backdrop-blur">
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Dialogue audio</p>
-                    <p className="text-xs text-muted-foreground">
-                      Generate ElevenLabs audio with word-level timing
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={handleGenerateAudio}
-                    disabled={isGeneratingAudio || isGenerating || !hasDialogue}
-                  >
-                    {isGeneratingAudio ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating audio...
-                      </>
-                    ) : (
-                      "Generate Dialogue Audio"
-                    )}
-                  </Button>
-                </div>
-                {audioUrl && (
-                  <>
-                    <audio ref={audioRef} controls src={audioUrl} className="w-full" />
-                    {!isAudioInSync && (
-                      <p className="text-xs text-amber-600">
-                        The dialogue has changed since this audio was generated. Regenerate to sync
-                        the highlights.
-                      </p>
-                    )}
-                  </>
-                )}
-                {audioError && (
-                  <p className="text-xs text-red-600" role="alert">
-                    {audioError}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
 
           <ChatInputBar
             isSubmitting={isGenerating}
