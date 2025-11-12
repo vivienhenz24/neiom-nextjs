@@ -95,6 +95,8 @@ export function TranslatePage() {
   const [selectedVoice] = useState<string | null>(null)
   const audioObjectUrlRef = useRef<string | null>(null)
   const lastPronouncedHashRef = useRef<string | null>(null)
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null)
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 
   const resetPronunciationState = () => {
     if (audioObjectUrlRef.current) {
@@ -111,8 +113,20 @@ export function TranslatePage() {
       if (audioObjectUrlRef.current) {
         URL.revokeObjectURL(audioObjectUrlRef.current)
       }
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.pause()
+      }
     }
   }, [])
+
+  useEffect(() => {
+    setIsAudioPlaying(false)
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.pause()
+      audioPlayerRef.current.currentTime = 0
+    }
+    setIsAudioPlaying(false)
+  }, [audioUrl])
 
   const hashPronunciationRequest = (text: string) => {
     const normalized = `${outputLanguage}|${selectedVoice ?? "default"}|${text}`
@@ -181,6 +195,21 @@ export function TranslatePage() {
     }
   }
 
+  const handlePronunciationButtonClick = () => {
+    if (isGeneratingAudio) return
+
+    if (audioUrl && audioPlayerRef.current) {
+      if (isAudioPlaying) {
+        audioPlayerRef.current.pause()
+      } else {
+        void audioPlayerRef.current.play().catch(() => setIsAudioPlaying(false))
+      }
+      return
+    }
+
+    void handleGeneratePronunciation()
+  }
+
   const handleTranslate = async () => {
     if (!inputText.trim()) {
       setError(t.enterTextBeforeTranslation)
@@ -209,8 +238,8 @@ export function TranslatePage() {
     try {
       const { translation } = await translateText(
         {
-          text: inputText.trim(),
-          sourceLanguage: inputLanguage,
+        text: inputText.trim(),
+        sourceLanguage: inputLanguage,
           targetLanguage: outputLanguage,
           sourceLanguageLabel: sourceLanguageDisplayName,
           targetLanguageLabel: targetLanguageDisplayName,
@@ -228,7 +257,7 @@ export function TranslatePage() {
       if (err instanceof Error && err.message) {
         setError(err.message)
       } else {
-        setError(t.unableToTranslate)
+      setError(t.unableToTranslate)
       }
     } finally {
       setIsLoading(false)
@@ -331,7 +360,7 @@ export function TranslatePage() {
               <TabsList>
                 {SOURCE_PRIMARY_LANGUAGE_TABS.map((language) => (
                   <TabsTrigger key={language.value} value={language.value}>
-                    {language.label}
+                {language.label}
                   </TabsTrigger>
                 ))}
                 <TabsTrigger value={HIDDEN_TAB_VALUE} className="hidden" aria-hidden="true">
@@ -353,7 +382,7 @@ export function TranslatePage() {
                   >
                     <span>{sourceDropdownButtonLabel}</span>
                     <ChevronDown className="h-4 w-4" />
-                  </Button>
+          </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="start"
@@ -371,7 +400,7 @@ export function TranslatePage() {
                       className="h-8"
                       autoFocus
                     />
-                  </div>
+        </div>
                   <DropdownMenuSeparator />
                   {filteredSourceAdditionalLanguageOptions.length > 0 ? (
                     filteredSourceAdditionalLanguageOptions.map((language) => {
@@ -393,19 +422,19 @@ export function TranslatePage() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+      </div>
           </Tabs>
 
           <div className="flex flex-col border border-input rounded-lg bg-background p-4 flex-1">
-            <Textarea
-              value={inputText}
-              onChange={(event) =>
-                setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
-              }
+          <Textarea
+            value={inputText}
+            onChange={(event) =>
+              setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
+            }
               placeholder="Enter any text in any language"
               className="flex-1 min-h-[180px] resize-none border-0 bg-transparent p-0 text-base leading-relaxed focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
-              maxLength={CHARACTER_LIMIT}
-            />
+            maxLength={CHARACTER_LIMIT}
+          />
             <div className="mt-4 flex items-center justify-end">
               <span className="text-xs text-muted-foreground">{characterCount}</span>
             </div>
@@ -438,13 +467,13 @@ export function TranslatePage() {
                 }}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button
+            <Button
                     variant="outline"
                     className="inline-flex items-center gap-2 whitespace-nowrap"
                   >
                     <span>{targetDropdownButtonLabel}</span>
                     <ChevronDown className="h-4 w-4" />
-                  </Button>
+            </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
@@ -484,42 +513,60 @@ export function TranslatePage() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+          </div>
           </Tabs>
 
           <div className="flex flex-col border border-input rounded-lg bg-muted/30 p-4 flex-1">
             <div className="flex-1 min-h-[240px] rounded-md text-sm overflow-y-auto">
+              <audio
+                ref={audioPlayerRef}
+                src={audioUrl ?? undefined}
+                onPlay={() => setIsAudioPlaying(true)}
+                onPause={() => setIsAudioPlaying(false)}
+                onEnded={() => setIsAudioPlaying(false)}
+                className="hidden"
+              />
               {translation ? (
                 <p className="whitespace-pre-wrap text-foreground/80">
                   {translation}{" "}
                   <button
                     type="button"
-                    onClick={handleGeneratePronunciation}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-[#6b21a8] hover:text-[#a855f7] transition-colors disabled:opacity-60"
+                    onClick={handlePronunciationButtonClick}
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-[#4c1d95] hover:text-[#a855f7] transition-colors disabled:opacity-60"
                     disabled={isGeneratingAudio}
                     aria-busy={isGeneratingAudio}
                   >
-                    [
-                    Generate Pronunciation
                     {isGeneratingAudio ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <>
+                        [<span>Generating pronunciation</span>
+                        <Loader2 className="h-4 w-4 animate-spin" />]
+                      </>
+                    ) : audioUrl ? (
+                      <>
+                        [<span>{isAudioPlaying ? "Pause pronunciation" : "Listen to pronunciation"}</span>
+                        {isAudioPlaying ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="4" width="4" height="16" />
+                            <rect x="14" y="4" width="4" height="16" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3" />
+                          </svg>
+                        )}]
+                      </>
                     ) : (
-                      <Volume2 className="h-4 w-4" />
+                      <>
+                        [<span>Generate pronunciation</span>
+                        <Volume2 className="h-4 w-4" />]
+                      </>
                     )}
-                    ]
                   </button>
                 </p>
               ) : (
                 <span className="text-muted-foreground">
                   {t.translationWillAppear}
                 </span>
-              )}
-              {audioUrl && (
-                <div className="mt-4">
-                  <audio controls src={audioUrl} className="w-full">
-                    Your browser does not support the audio element.
-                  </audio>
-                </div>
               )}
               {audioError && (
                 <p className="mt-2 text-sm text-red-600">
