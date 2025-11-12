@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Loader2, ChevronDown, Check, Volume2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -89,10 +89,96 @@ export function TranslatePage() {
   const [translation, setTranslation] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [audioError, setAudioError] = useState<string | null>(null)
+  const [selectedVoice] = useState<string | null>(null)
+  const audioObjectUrlRef = useRef<string | null>(null)
+  const lastPronouncedHashRef = useRef<string | null>(null)
 
-  const handleGeneratePronunciation = () => {
-    if (!translation) return
-    console.log("Generate pronunciation placeholder for:", translation)
+  const resetPronunciationState = () => {
+    if (audioObjectUrlRef.current) {
+      URL.revokeObjectURL(audioObjectUrlRef.current)
+      audioObjectUrlRef.current = null
+    }
+    setAudioUrl(null)
+    setAudioError(null)
+    lastPronouncedHashRef.current = null
+  }
+
+  useEffect(() => {
+    return () => {
+      if (audioObjectUrlRef.current) {
+        URL.revokeObjectURL(audioObjectUrlRef.current)
+      }
+    }
+  }, [])
+
+  const hashPronunciationRequest = (text: string) => {
+    const normalized = `${outputLanguage}|${selectedVoice ?? "default"}|${text}`
+    let hash = 0
+
+    for (let index = 0; index < normalized.length; index += 1) {
+      hash = (hash << 5) - hash + normalized.charCodeAt(index)
+      hash |= 0
+    }
+
+    return hash.toString()
+  }
+
+  const handleGeneratePronunciation = async () => {
+    const trimmedTranslation = translation.trim()
+    if (!trimmedTranslation || !outputLanguage || isGeneratingAudio) {
+      return
+    }
+
+    const nextHash = hashPronunciationRequest(trimmedTranslation)
+    if (lastPronouncedHashRef.current === nextHash && audioUrl) {
+      console.log("[pronounce] Using cached audio for current translation")
+      return
+    }
+
+    setIsGeneratingAudio(true)
+    setAudioError(null)
+
+    try {
+      const response = await fetch("/api/pronounce", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: trimmedTranslation,
+          languageCode: outputLanguage,
+          voiceId: selectedVoice ?? undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({}))
+        const message = errorPayload?.error ?? "Unable to generate pronunciation right now."
+        throw new Error(message)
+      }
+
+      const audioBlob = await response.blob()
+      const objectUrl = URL.createObjectURL(audioBlob)
+
+      if (audioObjectUrlRef.current) {
+        URL.revokeObjectURL(audioObjectUrlRef.current)
+      }
+
+      audioObjectUrlRef.current = objectUrl
+      setAudioUrl(objectUrl)
+      lastPronouncedHashRef.current = nextHash
+      console.log("[pronounce] Audio generated")
+    } catch (err) {
+      console.error("[pronounce] Generation failed", err)
+      const message =
+        err instanceof Error && err.message ? err.message : "Unable to generate pronunciation."
+      setAudioError(message)
+    } finally {
+      setIsGeneratingAudio(false)
+    }
   }
 
   const handleTranslate = async () => {
@@ -108,6 +194,7 @@ export function TranslatePage() {
       return
     }
 
+    resetPronunciationState()
     setIsLoading(true)
     setError(null)
     setTranslation("")
@@ -408,16 +495,36 @@ export function TranslatePage() {
                   <button
                     type="button"
                     onClick={handleGeneratePronunciation}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-[#6b21a8] hover:text-[#a855f7] transition-colors"
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-[#6b21a8] hover:text-[#a855f7] transition-colors disabled:opacity-60"
+                    disabled={isGeneratingAudio}
+                    aria-busy={isGeneratingAudio}
                   >
                     [
-                    Generate Pronunciation<Volume2 className="h-4 w-4" />]
+                    Generate Pronunciation
+                    {isGeneratingAudio ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Volume2 className="h-4 w-4" />
+                    )}
+                    ]
                   </button>
                 </p>
               ) : (
                 <span className="text-muted-foreground">
                   {t.translationWillAppear}
                 </span>
+              )}
+              {audioUrl && (
+                <div className="mt-4">
+                  <audio controls src={audioUrl} className="w-full">
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
+              {audioError && (
+                <p className="mt-2 text-sm text-red-600">
+                  {audioError}
+                </p>
               )}
             </div>
           </div>
