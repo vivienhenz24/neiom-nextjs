@@ -8,7 +8,7 @@ export type DialogueVoicePair = {
   speakerB: DialogueVoiceChoice
 }
 
-const DEFAULT_DIALOGUE_MODEL_ID = "eleven_multilingual_v3"
+const DEFAULT_DIALOGUE_MODEL_ID = process.env.ELEVENLABS_DIALOGUE_MODEL_ID?.trim()
 const DEFAULT_DIALOGUE_OUTPUT_FORMAT = "mp3_44100_128"
 
 const DIALOGUE_LANGUAGE_VOICES: Record<string, DialogueVoicePair> = {

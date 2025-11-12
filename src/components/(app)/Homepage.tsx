@@ -294,10 +294,8 @@ export default function Homepage() {
   useEffect(() => {
     const textarea = textareaRef.current;
     const overlay = highlightOverlayRef.current;
-    const highlightActive =
-      Boolean(audioUrl) && audioScriptSnapshot === generatedDialogue && wordTimings.length > 0;
 
-    if (!highlightActive || !textarea || !overlay) {
+    if (!textarea || !overlay) {
       return;
     }
 
@@ -306,11 +304,12 @@ export default function Homepage() {
       overlay.scrollLeft = textarea.scrollLeft;
     };
 
+    syncScroll();
     textarea.addEventListener("scroll", syncScroll);
     return () => {
       textarea.removeEventListener("scroll", syncScroll);
     };
-  }, [audioUrl, audioScriptSnapshot, generatedDialogue, wordTimings.length]);
+  }, []);
 
   const renderDialogueSegments = (
     text: string,
@@ -351,6 +350,42 @@ export default function Homepage() {
     });
   };
 
+  const renderAudioControls = () => (
+    <div className="flex flex-col items-start gap-2 text-left">
+      <button
+        type="button"
+        onClick={handleDialogueAudioButtonClick}
+        disabled={isGeneratingAudio || isGenerating}
+        aria-busy={isGeneratingAudio}
+        className="inline-flex items-center gap-2 text-lg font-semibold text-[#6b21a8] transition-colors hover:text-[#a855f7] disabled:opacity-60"
+      >
+        [
+        <span>
+          {isGeneratingAudio
+            ? "Generating dialogue audio"
+            : audioUrl && isAudioInSync
+              ? isAudioPlaying
+                ? "Pause dialogue audio"
+                : "Play dialogue audio"
+              : "Generate dialogue audio"}
+        </span>
+        {isGeneratingAudio ? <Loader2 className="h-5 w-5 animate-spin" /> : <Volume2 className="h-5 w-5" />}
+        ]
+      </button>
+      {audioUrl && (
+        <>
+          <audio ref={audioRef} src={audioUrl ?? undefined} className="hidden" preload="metadata" />
+          {!isAudioInSync && (
+            <p className="mt-2 text-xs text-amber-600">
+              The dialogue changed since this audio was generated. Generate again to sync highlights.
+            </p>
+          )}
+        </>
+      )}
+      {audioError && <p className="mt-2 text-sm text-red-600" role="alert">{audioError}</p>}
+    </div>
+  );
+
   return (
     <div className="relative box-border h-[calc(100vh-4rem)] overflow-hidden px-6 pb-32 pt-8">
       <div className="relative h-full w-full">
@@ -361,74 +396,30 @@ export default function Homepage() {
           readOnly={isGenerating}
           placeholder="Describe the dialogue scenario or paste your script..."
           className={cn(
-            "h-full w-full resize-none border-none bg-transparent px-4 py-4 text-2xl leading-relaxed caret-black focus-visible:border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none",
-            highlightEnabled && "text-transparent caret-purple-600"
+            "h-full w-full resize-none border-none bg-transparent px-4 py-4 text-2xl leading-relaxed text-transparent caret-purple-600 focus-visible:border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
           )}
         />
-        {highlightEnabled && (
-          <div
-            ref={highlightOverlayRef}
-            className="pointer-events-none absolute inset-0 overflow-auto px-4 py-4 text-2xl leading-relaxed text-foreground/90"
-            aria-hidden="true"
-          >
-            {renderDialogueSegments(generatedDialogue, wordTimings, activeWordIndex)}
-          </div>
-        )}
-      </div>
-
-      {hasDialogue && (
-        <div className="mt-4 px-4">
-          <button
-            type="button"
-            onClick={handleDialogueAudioButtonClick}
-            disabled={isGeneratingAudio || isGenerating}
-            aria-busy={isGeneratingAudio}
-            className="inline-flex items-center gap-2 text-lg font-semibold text-[#6b21a8] transition-colors hover:text-[#a855f7] disabled:opacity-60"
-          >
-            [
-            <span>
-              {isGeneratingAudio
-                ? "Generating dialogue audio"
-                : audioUrl && isAudioInSync
-                  ? isAudioPlaying
-                    ? "Pause dialogue audio"
-                    : "Play dialogue audio"
-                  : "Generate dialogue audio"}
-            </span>
-            {isGeneratingAudio ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Volume2 className="h-5 w-5" />
+        <div
+          ref={highlightOverlayRef}
+          className="pointer-events-none absolute inset-0 overflow-auto px-4 py-4 text-2xl leading-relaxed text-foreground/90"
+        >
+          <div aria-hidden="true">
+            {renderDialogueSegments(
+              generatedDialogue,
+              highlightEnabled ? wordTimings : [],
+              highlightEnabled ? activeWordIndex : null
             )}
-            ]
-          </button>
-          {audioUrl && (
-            <>
-              <audio
-                ref={audioRef}
-                src={audioUrl ?? undefined}
-                className="hidden"
-                preload="metadata"
-              />
-              {!isAudioInSync && (
-                <p className="mt-2 text-xs text-amber-600">
-                  The dialogue changed since this audio was generated. Generate again to sync
-                  highlights.
-                </p>
-              )}
-            </>
-          )}
-          {audioError && (
-            <p className="mt-2 text-sm text-red-600" role="alert">
-              {audioError}
-            </p>
+          </div>
+          {hasDialogue && (
+            <div className="pointer-events-auto mt-8">
+              {renderAudioControls()}
+            </div>
           )}
         </div>
-      )}
+      </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-8 flex justify-center px-6">
         <div className="pointer-events-auto flex w-full flex-col items-center justify-center gap-3">
-
           <ChatInputBar
             isSubmitting={isGenerating}
             onSubmitPrompt={handlePromptSubmit}

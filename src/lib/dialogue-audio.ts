@@ -75,12 +75,17 @@ export const synthesizeDialogueAudio = async ({ script, language }: DialogueAudi
     throw new Error("Unable to find dialogue lines to convert.")
   }
 
-  return client.textToDialogue.convertWithTimestamps({
+  const requestPayload: Parameters<typeof client.textToDialogue.convertWithTimestamps>[0] = {
     outputFormat: DIALOGUE_OUTPUT_FORMAT,
-    modelId: DIALOGUE_MODEL_ID,
     languageCode: language?.trim().toLowerCase(),
     inputs,
-  })
+  }
+
+  if (DIALOGUE_MODEL_ID) {
+    requestPayload.modelId = DIALOGUE_MODEL_ID
+  }
+
+  return client.textToDialogue.convertWithTimestamps(requestPayload)
 }
 
 export { MAX_DIALOGUE_AUDIO_CHARACTERS }
