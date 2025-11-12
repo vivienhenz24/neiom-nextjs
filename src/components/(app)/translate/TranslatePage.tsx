@@ -1,24 +1,28 @@
 "use client"
 
 import { useState } from "react"
-import { Mic, Volume2, Copy, ArrowLeftRight, Loader2 } from "lucide-react"
+import { ArrowLeftRight, Loader2, ChevronDown, Check } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { translateText } from "@/lib/translation"
 import { useLocale } from "@/components/LocaleProvider"
 import { getNestedTranslations } from "@/lib/i18n"
 
-const LANGUAGE_OPTIONS = [
-  { label: "English", value: "en" },
+const ALL_LANGUAGE_OPTIONS = [
   { label: "French", value: "fr" },
+  { label: "English", value: "en" },
+  { label: "Luxembourgish", value: "lb" },
   { label: "German", value: "de" },
   { label: "Spanish", value: "es" },
   { label: "Portuguese", value: "pt" },
@@ -28,19 +32,63 @@ const LANGUAGE_OPTIONS = [
   { label: "Romanian", value: "ro" },
 ]
 
-const TARGET_LANGUAGE = "lb"
+const SOURCE_PRIMARY_LANGUAGE_VALUES = ["fr", "en", "lb"] as const
+const TARGET_PRIMARY_LANGUAGE_VALUES = ["lb", "fr", "en"] as const
+const LANGUAGE_LOOKUP = Object.fromEntries(
+  ALL_LANGUAGE_OPTIONS.map((language) => [language.value, language])
+) as Record<string, (typeof ALL_LANGUAGE_OPTIONS)[number]>
+
+const SOURCE_PRIMARY_LANGUAGE_TABS = SOURCE_PRIMARY_LANGUAGE_VALUES.map(
+  (value) => LANGUAGE_LOOKUP[value]
+).filter(Boolean)
+const TARGET_PRIMARY_LANGUAGE_TABS = TARGET_PRIMARY_LANGUAGE_VALUES.map(
+  (value) => LANGUAGE_LOOKUP[value]
+).filter(Boolean)
+const SOURCE_ADDITIONAL_LANGUAGE_OPTIONS = ALL_LANGUAGE_OPTIONS.filter(
+  (language) =>
+    !SOURCE_PRIMARY_LANGUAGE_VALUES.includes(
+      language.value as (typeof SOURCE_PRIMARY_LANGUAGE_VALUES)[number]
+    )
+)
+const TARGET_ADDITIONAL_LANGUAGE_OPTIONS = ALL_LANGUAGE_OPTIONS.filter(
+  (language) =>
+    !TARGET_PRIMARY_LANGUAGE_VALUES.includes(
+      language.value as (typeof TARGET_PRIMARY_LANGUAGE_VALUES)[number]
+    )
+)
+const HIDDEN_TAB_VALUE = "other"
+const DEFAULT_SOURCE_LANGUAGE = SOURCE_PRIMARY_LANGUAGE_TABS[0]?.value ?? ""
+const DEFAULT_TARGET_LANGUAGE = TARGET_PRIMARY_LANGUAGE_TABS[0]?.value ?? ""
 const CHARACTER_LIMIT = 5000
 
 export function TranslatePage() {
   const { locale } = useLocale()
   const t = getNestedTranslations(locale).pages.dashboard.translate
 
-  const [inputLanguage, setInputLanguage] = useState("")
+  const [inputLanguage, setInputLanguage] = useState(DEFAULT_SOURCE_LANGUAGE)
+  const [outputLanguage, setOutputLanguage] = useState(DEFAULT_TARGET_LANGUAGE)
+  const [activeSourceTab, setActiveSourceTab] = useState(
+    DEFAULT_SOURCE_LANGUAGE &&
+      SOURCE_PRIMARY_LANGUAGE_VALUES.includes(
+        DEFAULT_SOURCE_LANGUAGE as (typeof SOURCE_PRIMARY_LANGUAGE_VALUES)[number]
+      )
+      ? DEFAULT_SOURCE_LANGUAGE
+      : HIDDEN_TAB_VALUE
+  )
+  const [activeTargetTab, setActiveTargetTab] = useState(
+    DEFAULT_TARGET_LANGUAGE &&
+      TARGET_PRIMARY_LANGUAGE_VALUES.includes(
+        DEFAULT_TARGET_LANGUAGE as (typeof TARGET_PRIMARY_LANGUAGE_VALUES)[number]
+      )
+      ? DEFAULT_TARGET_LANGUAGE
+      : HIDDEN_TAB_VALUE
+  )
+  const [sourceLanguageSearchTerm, setSourceLanguageSearchTerm] = useState("")
+  const [targetLanguageSearchTerm, setTargetLanguageSearchTerm] = useState("")
   const [inputText, setInputText] = useState("")
   const [translation, setTranslation] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [copyMessage, setCopyMessage] = useState<string | null>(null)
 
   const handleTranslate = async () => {
     if (!inputText.trim()) {
@@ -55,13 +103,12 @@ export function TranslatePage() {
 
     setIsLoading(true)
     setError(null)
-    setCopyMessage(null)
 
     try {
       const { translation } = await translateText({
         text: inputText.trim(),
         sourceLanguage: inputLanguage,
-        targetLanguage: TARGET_LANGUAGE,
+        targetLanguage: outputLanguage,
       })
       setTranslation(translation)
     } catch (err) {
@@ -72,130 +119,288 @@ export function TranslatePage() {
     }
   }
 
-  const handlePronunciation = () => {
+  const handleGeneratePronunciation = () => {
     if (!translation) return
-    console.log("Play pronunciation placeholder for:", translation)
+    console.log("Generate pronunciation placeholder for:", translation)
   }
 
-  const handleCopy = async () => {
-    if (!translation) return
-
-    try {
-      await navigator.clipboard.writeText(translation)
-      setCopyMessage(t.copiedToClipboard)
-      setTimeout(() => setCopyMessage(null), 2000)
-    } catch {
-      setCopyMessage(t.copyFailed)
-      setTimeout(() => setCopyMessage(null), 2000)
+  const handleSourceLanguageSelect = (value: string) => {
+    if (value === HIDDEN_TAB_VALUE) return
+    setInputLanguage(value)
+    if (
+      SOURCE_PRIMARY_LANGUAGE_VALUES.includes(
+        value as (typeof SOURCE_PRIMARY_LANGUAGE_VALUES)[number]
+      )
+    ) {
+      setActiveSourceTab(value)
+    } else {
+      setActiveSourceTab(HIDDEN_TAB_VALUE)
     }
+    setSourceLanguageSearchTerm("")
   }
 
-  const handleMicInput = () => {
-    console.log("Voice input coming soon")
+  const handleSourceTabChange = (value: string) => {
+    if (value === HIDDEN_TAB_VALUE) {
+      setActiveSourceTab(HIDDEN_TAB_VALUE)
+      return
+    }
+    handleSourceLanguageSelect(value)
   }
+
+  const handleTargetLanguageSelect = (value: string) => {
+    if (value === HIDDEN_TAB_VALUE) return
+    setOutputLanguage(value)
+    if (
+      TARGET_PRIMARY_LANGUAGE_VALUES.includes(
+        value as (typeof TARGET_PRIMARY_LANGUAGE_VALUES)[number]
+      )
+    ) {
+      setActiveTargetTab(value)
+    } else {
+      setActiveTargetTab(HIDDEN_TAB_VALUE)
+    }
+    setTargetLanguageSearchTerm("")
+  }
+
+  const handleTargetTabChange = (value: string) => {
+    if (value === HIDDEN_TAB_VALUE) {
+      setActiveTargetTab(HIDDEN_TAB_VALUE)
+      return
+    }
+    handleTargetLanguageSelect(value)
+  }
+
+  const sourceCurrentLanguageLabel =
+    ALL_LANGUAGE_OPTIONS.find((language) => language.value === inputLanguage)?.label ?? ""
+  const targetCurrentLanguageLabel =
+    ALL_LANGUAGE_OPTIONS.find((language) => language.value === outputLanguage)?.label ?? ""
+  const isSourceAdditionalLanguageSelected = SOURCE_ADDITIONAL_LANGUAGE_OPTIONS.some(
+    (language) => language.value === inputLanguage
+  )
+  const isTargetAdditionalLanguageSelected = TARGET_ADDITIONAL_LANGUAGE_OPTIONS.some(
+    (language) => language.value === outputLanguage
+  )
+  const sourceDropdownButtonLabel = isSourceAdditionalLanguageSelected
+    ? sourceCurrentLanguageLabel
+    : "More languages"
+  const targetDropdownButtonLabel = isTargetAdditionalLanguageSelected
+    ? targetCurrentLanguageLabel
+    : "More languages"
+  const sourceNormalizedSearch = sourceLanguageSearchTerm.trim().toLowerCase()
+  const targetNormalizedSearch = targetLanguageSearchTerm.trim().toLowerCase()
+  const filteredSourceAdditionalLanguageOptions = SOURCE_ADDITIONAL_LANGUAGE_OPTIONS.filter(
+    (language) =>
+      language.label.toLowerCase().includes(sourceNormalizedSearch) ||
+      language.value.toLowerCase().includes(sourceNormalizedSearch)
+  )
+  const filteredTargetAdditionalLanguageOptions = TARGET_ADDITIONAL_LANGUAGE_OPTIONS.filter(
+    (language) =>
+      language.label.toLowerCase().includes(targetNormalizedSearch) ||
+      language.value.toLowerCase().includes(targetNormalizedSearch)
+  )
 
   const characterCount = `${inputText.length} / ${CHARACTER_LIMIT}`
 
   return (
     <div className="container mx-auto p-6 max-w-7xl h-[calc(100vh-4rem)] flex flex-col">
-      <div className="mb-4 flex-shrink-0">
-        <h2 className="text-xl font-semibold mb-1">{t.introTitle}</h2>
-        <p className="text-sm text-muted-foreground">{t.introDescription}</p>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-hidden mb-6">
+        <div className="flex flex-col gap-3 h-full">
+          <Tabs
+            value={activeSourceTab}
+            onValueChange={handleSourceTabChange}
+            className="flex-shrink-0"
+          >
+            <div className="flex items-center gap-3">
+              <TabsList>
+                {SOURCE_PRIMARY_LANGUAGE_TABS.map((language) => (
+                  <TabsTrigger key={language.value} value={language.value}>
+                    {language.label}
+                  </TabsTrigger>
+                ))}
+                <TabsTrigger value={HIDDEN_TAB_VALUE} className="hidden" aria-hidden="true">
+                  Other
+                </TabsTrigger>
+              </TabsList>
 
-      <div className="flex items-center justify-between gap-4 mb-4 flex-shrink-0">
-        <Select value={inputLanguage} onValueChange={setInputLanguage}>
-          <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder={t.selectLanguagePlaceholder} />
-          </SelectTrigger>
-          <SelectContent>
-            {LANGUAGE_OPTIONS.map((language) => (
-              <SelectItem key={language.value} value={language.value}>
-                {language.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              <DropdownMenu
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setSourceLanguageSearchTerm("")
+                  }
+                }}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="inline-flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <span>{sourceDropdownButtonLabel}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="w-[220px] p-2"
+                  onEscapeKeyDown={() => setSourceLanguageSearchTerm("")}
+                >
+                  <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                    Search languages
+                  </DropdownMenuLabel>
+                  <div className="mt-1">
+                    <Input
+                      placeholder="Search..."
+                      value={sourceLanguageSearchTerm}
+                      onChange={(event) => setSourceLanguageSearchTerm(event.target.value)}
+                      className="h-8"
+                      autoFocus
+                    />
+                  </div>
+                  <DropdownMenuSeparator />
+                  {filteredSourceAdditionalLanguageOptions.length > 0 ? (
+                    filteredSourceAdditionalLanguageOptions.map((language) => {
+                      const isActive = language.value === inputLanguage
+                      return (
+                        <DropdownMenuItem
+                          key={language.value}
+                          onSelect={() => handleSourceLanguageSelect(language.value)}
+                        >
+                          <span>{language.label}</span>
+                          {isActive && <Check className="ml-auto h-4 w-4" />}
+                        </DropdownMenuItem>
+                      )
+                    })
+                  ) : (
+                    <DropdownMenuItem disabled>
+                      <span>No languages found</span>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </Tabs>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" disabled>
-            <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col border border-input rounded-lg bg-background p-4 flex-1">
+            <Textarea
+              value={inputText}
+              onChange={(event) =>
+                setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
+              }
+              placeholder="Enter any text in any language"
+              className="flex-1 min-h-[180px] resize-none border-0 bg-transparent p-0 text-base leading-relaxed focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
+              maxLength={CHARACTER_LIMIT}
+            />
+            <div className="mt-3 flex items-center justify-end text-xs text-muted-foreground">
+              <span>{characterCount}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 h-full">
+          <Tabs
+            value={activeTargetTab}
+            onValueChange={handleTargetTabChange}
+            className="flex-shrink-0"
+          >
+            <div className="flex items-center gap-3">
+              <TabsList>
+                {TARGET_PRIMARY_LANGUAGE_TABS.map((language) => (
+                  <TabsTrigger key={language.value} value={language.value}>
+                    {language.label}
+                  </TabsTrigger>
+                ))}
+                <TabsTrigger value={HIDDEN_TAB_VALUE} className="hidden" aria-hidden="true">
+                  Other
+                </TabsTrigger>
+              </TabsList>
+
+              <DropdownMenu
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setTargetLanguageSearchTerm("")
+                  }
+                }}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="inline-flex items-center gap-2 whitespace-nowrap"
+                  >
+                    <span>{targetDropdownButtonLabel}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-[220px] p-2"
+                  onEscapeKeyDown={() => setTargetLanguageSearchTerm("")}
+                >
+                  <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+                    Search languages
+                  </DropdownMenuLabel>
+                  <div className="mt-1">
+                    <Input
+                      placeholder="Search..."
+                      value={targetLanguageSearchTerm}
+                      onChange={(event) => setTargetLanguageSearchTerm(event.target.value)}
+                      className="h-8"
+                      autoFocus
+                    />
+                  </div>
+                  <DropdownMenuSeparator />
+                  {filteredTargetAdditionalLanguageOptions.length > 0 ? (
+                    filteredTargetAdditionalLanguageOptions.map((language) => {
+                      const isActive = language.value === outputLanguage
+                      return (
+                        <DropdownMenuItem
+                          key={language.value}
+                          onSelect={() => handleTargetLanguageSelect(language.value)}
+                        >
+                          <span>{language.label}</span>
+                          {isActive && <Check className="ml-auto h-4 w-4" />}
+                        </DropdownMenuItem>
+                      )
+                    })
+                  ) : (
+                    <DropdownMenuItem disabled>
+                      <span>No languages found</span>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </Tabs>
+
+          <div className="flex flex-col border border-input rounded-lg bg-muted/30 p-4 flex-1">
+            <div className="flex-1 min-h-[240px] rounded-md text-sm overflow-y-auto">
+              {translation ? (
+                <span className="whitespace-pre-wrap text-foreground/80">
+                  {translation}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">
+                  {t.translationWillAppear}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <Button
+            variant="secondary"
+            onClick={handleGeneratePronunciation}
+            disabled={!translation}
+            className="self-start"
+          >
+            Generate pronunciation
           </Button>
-          <span className="text-sm font-medium">{t.luxembourgish}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-hidden mb-4">
-        <section className="flex flex-col border border-input rounded-lg bg-background p-4">
-          <Textarea
-            value={inputText}
-            onChange={(event) =>
-              setInputText(event.target.value.slice(0, CHARACTER_LIMIT))
-            }
-            placeholder={t.enterTextPlaceholder}
-            className="flex-1 min-h-[180px] resize-none border-0 bg-transparent p-0 text-base leading-relaxed focus-visible:ring-0 focus-visible:outline-none"
-            maxLength={CHARACTER_LIMIT}
-          />
-          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleMicInput}
-              title={t.speak}
-            >
-              <Mic className="h-5 w-5" />
-            </Button>
-            <span>{characterCount}</span>
-          </div>
-        </section>
-
-        <section className="flex flex-col border border-input rounded-lg bg-muted/50 p-4">
-          <div className="flex-1 min-h-[180px] rounded-md text-sm overflow-y-auto">
-            {translation ? (
-              <span className="whitespace-pre-wrap text-foreground/80">
-                {translation}
-              </span>
-            ) : (
-              <span className="text-muted-foreground">
-                {t.translationWillAppear}
-              </span>
-            )}
-          </div>
-          <div className="mt-3 pt-3 border-t border-border flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              title={t.listenToPronunciation}
-              onClick={handlePronunciation}
-              disabled={!translation}
-            >
-              <Volume2 className="h-5 w-5" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              title={t.copyTranslation}
-              onClick={handleCopy}
-              disabled={!translation}
-            >
-              <Copy className="h-5 w-5" />
-            </Button>
-            {copyMessage && (
-              <span className="text-xs text-muted-foreground">{copyMessage}</span>
-            )}
-          </div>
-        </section>
-      </div>
-
-      <div className="flex justify-center flex-shrink-0">
+      <div className="flex justify-start flex-shrink-0">
         <Button
           size="lg"
           className="px-12"
           onClick={handleTranslate}
-          disabled={isLoading || !inputText.trim() || !inputLanguage}
+          disabled={isLoading || !inputText.trim() || !inputLanguage || !outputLanguage}
         >
           {isLoading ? (
             <>
@@ -203,7 +408,7 @@ export function TranslatePage() {
               {t.translating}
             </>
           ) : (
-            t.translateToLuxembourgish
+            "Translate"
           )}
         </Button>
       </div>

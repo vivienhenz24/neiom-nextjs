@@ -42,7 +42,7 @@
       "description": "Dëst ass eng Test Säit fir ze verifizéieren datt d'Top Bar korrekt iwwer verschidde Säiten funktiounéiert."
     },
     "demo": {
-      "title": "Demo Diaglogue INNL",
+      "title": "Demo Diaglogue INLL",
       "introTitle": "Wëllkomm bei Text-to-Speech",
       "introDescription": "Gitt hei drënner Ären Text an a passt d'Akustesch Astellungen op der rietser Säit un. Klickt op Ofschécken fir d'Sproochaudio ze generéieren.",
       "promptLabel": "Gitt Äre Prompt oder Text an",
@@ -99,8 +99,8 @@
     "topBar": {
       "pageTitles": {
         "dashboard": "Dashboard",
-        "demoApplication": "Demo Diaglogue INNL",
-        "translate": "Iwwersetzen",
+        "demoApplication": "Demo Diaglogue INLL",
+        "translate": "Iwwersetzen INLL",
         "test": "Test"
       },
       "feedback": {
@@ -139,8 +139,8 @@
     },
     "sidebar": {
       "application": "Uwendung",
-      "demoApplication": "Demo Diaglogue INNL",
-      "translate": "Iwwersetzen",
+      "demoApplication": "Demo Diaglogue INLL",
+      "translate": "Iwwersetzen INLL",
       "signOut": "Ofmellen"
     }
   }
