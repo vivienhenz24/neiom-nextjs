@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeftRight, Loader2, ChevronDown, Check } from "lucide-react"
+import { ArrowLeftRight, Loader2, ChevronDown, Check, Volume2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -90,6 +90,11 @@ export function TranslatePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const handleGeneratePronunciation = () => {
+    if (!translation) return
+    console.log("Generate pronunciation placeholder for:", translation)
+  }
+
   const handleTranslate = async () => {
     if (!inputText.trim()) {
       setError(t.enterTextBeforeTranslation)
@@ -117,11 +122,6 @@ export function TranslatePage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleGeneratePronunciation = () => {
-    if (!translation) return
-    console.log("Generate pronunciation placeholder for:", translation)
   }
 
   const handleSourceLanguageSelect = (value: string) => {
@@ -200,6 +200,7 @@ export function TranslatePage() {
   )
 
   const characterCount = `${inputText.length} / ${CHARACTER_LIMIT}`
+
 
   return (
     <div className="container mx-auto p-6 max-w-7xl h-[calc(100vh-4rem)] flex flex-col">
@@ -289,8 +290,8 @@ export function TranslatePage() {
               className="flex-1 min-h-[180px] resize-none border-0 bg-transparent p-0 text-base leading-relaxed focus-visible:outline-none focus-visible:ring-0 focus-visible:border-0 shadow-none"
               maxLength={CHARACTER_LIMIT}
             />
-            <div className="mt-3 flex items-center justify-end text-xs text-muted-foreground">
-              <span>{characterCount}</span>
+            <div className="mt-4 flex items-center justify-end">
+              <span className="text-xs text-muted-foreground">{characterCount}</span>
             </div>
           </div>
         </div>
@@ -373,9 +374,17 @@ export function TranslatePage() {
           <div className="flex flex-col border border-input rounded-lg bg-muted/30 p-4 flex-1">
             <div className="flex-1 min-h-[240px] rounded-md text-sm overflow-y-auto">
               {translation ? (
-                <span className="whitespace-pre-wrap text-foreground/80">
-                  {translation}
-                </span>
+                <p className="whitespace-pre-wrap text-foreground/80">
+                  {translation}{" "}
+                  <button
+                    type="button"
+                    onClick={handleGeneratePronunciation}
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-[#6b21a8] hover:text-[#a855f7] transition-colors"
+                  >
+                    [
+                    Generate Pronunciation<Volume2 className="h-4 w-4" />]
+                  </button>
+                </p>
               ) : (
                 <span className="text-muted-foreground">
                   {t.translationWillAppear}
@@ -383,22 +392,13 @@ export function TranslatePage() {
               )}
             </div>
           </div>
-
-          <Button
-            variant="secondary"
-            onClick={handleGeneratePronunciation}
-            disabled={!translation}
-            className="self-start"
-          >
-            Generate pronunciation
-          </Button>
         </div>
       </div>
 
-      <div className="flex justify-start flex-shrink-0">
+      <div className="mt-4 flex justify-center flex-shrink-0">
         <Button
           size="lg"
-          className="px-12"
+          className="px-10 py-3 bg-black text-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150"
           onClick={handleTranslate}
           disabled={isLoading || !inputText.trim() || !inputLanguage || !outputLanguage}
         >
