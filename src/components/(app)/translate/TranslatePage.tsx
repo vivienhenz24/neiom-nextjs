@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeftRight, Loader2, ChevronDown, Check, Volume2 } from "lucide-react"
+import { Loader2, ChevronDown, Check, Volume2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -98,29 +98,54 @@ export function TranslatePage() {
   const handleTranslate = async () => {
     if (!inputText.trim()) {
       setError(t.enterTextBeforeTranslation)
+      console.log("[translate] blocked: empty input")
       return
     }
 
     if (!inputLanguage) {
       setError(t.selectLanguageRequired)
+      console.log("[translate] blocked: no source language selected")
       return
     }
 
     setIsLoading(true)
     setError(null)
+    setTranslation("")
+    console.log("[translate] sending request", {
+      sourceLanguage: inputLanguage,
+      targetLanguage: outputLanguage,
+      sourceLanguageLabel: sourceLanguageDisplayName,
+      targetLanguageLabel: targetLanguageDisplayName,
+      textLength: inputText.trim().length,
+    })
 
     try {
-      const { translation } = await translateText({
-        text: inputText.trim(),
-        sourceLanguage: inputLanguage,
-        targetLanguage: outputLanguage,
-      })
+      const { translation } = await translateText(
+        {
+          text: inputText.trim(),
+          sourceLanguage: inputLanguage,
+          targetLanguage: outputLanguage,
+          sourceLanguageLabel: sourceLanguageDisplayName,
+          targetLanguageLabel: targetLanguageDisplayName,
+        },
+        {
+          onDelta: (chunk) => {
+            setTranslation((prev) => prev + chunk)
+          },
+        }
+      )
       setTranslation(translation)
+      console.log("[translate] success", { translationLength: translation.length })
     } catch (err) {
       console.error("Translation failed", err)
-      setError(t.unableToTranslate)
+      if (err instanceof Error && err.message) {
+        setError(err.message)
+      } else {
+        setError(t.unableToTranslate)
+      }
     } finally {
       setIsLoading(false)
+      console.log("[translate] request finished")
     }
   }
 
@@ -174,6 +199,10 @@ export function TranslatePage() {
     ALL_LANGUAGE_OPTIONS.find((language) => language.value === inputLanguage)?.label ?? ""
   const targetCurrentLanguageLabel =
     ALL_LANGUAGE_OPTIONS.find((language) => language.value === outputLanguage)?.label ?? ""
+  const sourceLanguageDisplayName =
+    sourceCurrentLanguageLabel || inputLanguage?.toUpperCase() || "Source"
+  const targetLanguageDisplayName =
+    targetCurrentLanguageLabel || outputLanguage?.toUpperCase() || "Target"
   const isSourceAdditionalLanguageSelected = SOURCE_ADDITIONAL_LANGUAGE_OPTIONS.some(
     (language) => language.value === inputLanguage
   )
@@ -423,4 +452,3 @@ export function TranslatePage() {
 }
 
 export default TranslatePage
-
