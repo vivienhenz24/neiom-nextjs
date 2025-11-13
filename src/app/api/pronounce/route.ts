@@ -78,11 +78,11 @@ export async function POST(request: Request) {
         voiceId,
       })
 
-    const responseBody =
-      audioBuffer instanceof Buffer
-        ? audioBuffer.buffer.slice(audioBuffer.byteOffset, audioBuffer.byteOffset + audioBuffer.byteLength)
-        : audioBuffer
-    const contentLength = audioBuffer.byteLength ?? audioBuffer.length
+    const responseBody = audioBuffer.buffer.slice(
+      audioBuffer.byteOffset,
+      audioBuffer.byteOffset + audioBuffer.byteLength
+    ) as ArrayBuffer
+    const contentLength = audioBuffer.byteLength
 
     return new Response(responseBody, {
       status: 200,

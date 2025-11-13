@@ -8,6 +8,7 @@ import {
   SUPPORTED_PRONUNCIATION_LANGUAGES,
   resolveVoiceProfile,
 } from "@/lib/voices"
+import type { VoiceProfile } from "@/lib/voices"
 
 type PronunciationRequest = {
   text: string
@@ -40,7 +41,7 @@ export const readableStreamToBuffer = async (
   return Buffer.concat(chunks)
 }
 
-const outputFormatToMimeType = (format: string | undefined) => {
+const outputFormatToMimeType = (format: VoiceProfile["outputFormat"] | undefined) => {
   if (!format) {
     return DEFAULT_AUDIO_MIME_TYPE
   }

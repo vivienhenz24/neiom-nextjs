@@ -1,13 +1,15 @@
+import type { TextToSpeechConvertRequestOutputFormat } from "@elevenlabs/elevenlabs-js/api/resources/textToSpeech/types/TextToSpeechConvertRequestOutputFormat"
+
 export type VoiceProfile = {
   voiceId: string
   label: string
   modelId: string
-  outputFormat: string
+  outputFormat: TextToSpeechConvertRequestOutputFormat
   optimizeStreamingLatency?: number | null
 }
 
 const DEFAULT_MODEL_ID = "eleven_multilingual_v2"
-const DEFAULT_OUTPUT_FORMAT = "mp3_44100_128"
+const DEFAULT_OUTPUT_FORMAT: TextToSpeechConvertRequestOutputFormat = "mp3_44100_128"
 
 const LANGUAGE_VOICE_MAP: Record<string, VoiceProfile> = {
   en: {
@@ -92,7 +94,7 @@ export const DEFAULT_AUDIO_MIME_TYPE = "audio/mpeg"
 
 export const DEFAULT_STREAMING_STRATEGY = "buffered" as const
 
-export const DEFAULT_VOICE_OUTPUT_FORMAT = DEFAULT_OUTPUT_FORMAT
+export const DEFAULT_VOICE_OUTPUT_FORMAT: TextToSpeechConvertRequestOutputFormat = DEFAULT_OUTPUT_FORMAT
 
 export const DEFAULT_VOICE_MODEL_ID = DEFAULT_MODEL_ID
 
