@@ -9,6 +9,7 @@ import {
   WordTiming,
   buildWordTimingsFromAlignment,
 } from "@/lib/dialogue-highlighting";
+import { buildHighlightRanges, HighlightRange } from "@/lib/audio-highlighting";
 import { buildTranscriptFromEntries, parseDialogueEntries } from "@/lib/dialogue-text";
 import { cn } from "@/lib/utils";
 import { Loader2, Volume2 } from "lucide-react";
@@ -30,12 +31,6 @@ type DialogueAudioResponseBody = {
   normalizedAlignment?: AlignmentPayload;
   transcript?: string;
   error?: string;
-};
-
-type HighlightRange = {
-  start: number;
-  end: number;
-  wordIndex: number;
 };
 
 const base64ToBlob = (audioBase64: string, mimeType = "audio/mpeg") => {
@@ -83,6 +78,7 @@ export default function Homepage() {
   const [wordTimings, setWordTimings] = useState<WordTiming[]>([]);
   const [activeWordIndex, setActiveWordIndex] = useState<number | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [shouldAutoplayAudio, setShouldAutoplayAudio] = useState(false);
 
   const dialogueEntries = useMemo(() => parseDialogueEntries(generatedDialogue), [generatedDialogue]);
   const localTranscript = useMemo(
@@ -104,63 +100,27 @@ export default function Homepage() {
       return [];
     }
 
-    const ranges: HighlightRange[] = [];
-
-    wordTimings.forEach((timing) => {
-      const overlappingEntries = dialogueEntries.filter(
-        (entry) =>
-          timing.transcriptStartIndex < entry.transcriptEndIndex &&
-          timing.transcriptEndIndex > entry.transcriptStartIndex
-      );
-
-      overlappingEntries.forEach((entry) => {
-        if (!entry.normalizedToOriginalMap.length) {
-          return;
-        }
-
-        const entryRelativeStart = Math.max(
-          0,
-          timing.transcriptStartIndex - entry.transcriptStartIndex
-        );
-        const entryRelativeEnd = Math.max(
-          entryRelativeStart + 1,
-          Math.min(timing.transcriptEndIndex, entry.transcriptEndIndex) - entry.transcriptStartIndex
-        );
-
-        const map = entry.normalizedToOriginalMap;
-        const clamp = (value: number) =>
-          map[Math.min(Math.max(value, 0), map.length - 1)] ?? entry.spokenStartIndex;
-
-        const originalStart = clamp(entryRelativeStart);
-        const originalEnd = clamp(entryRelativeEnd - 1) + 1;
-
-        ranges.push({
-          start: originalStart,
-          end: originalEnd,
-          wordIndex: timing.wordIndex,
-        });
-      });
+    const ranges = buildHighlightRanges({
+      script: generatedDialogue,
+      dialogueEntries,
+      wordTimings,
     });
 
-    const sorted = ranges.sort((a, b) => a.start - b.start);
     console.log("[dialogue highlighting] Computed highlight ranges", {
-      rangeCount: sorted.length,
+      rangeCount: ranges.length,
       dialogueEntryCount: dialogueEntries.length,
       isAudioInSync,
       hasWordTimings: wordTimings.length > 0,
-      rangesDetail: sorted.map((range) => ({
+      rangesDetail: ranges.map((range) => ({
         ...range,
         text: generatedDialogue.slice(range.start, range.end),
       })),
     });
-    return sorted;
-  }, [audioUrl, isAudioInSync, wordTimings, dialogueEntries]);
+
+    return ranges;
+  }, [audioUrl, dialogueEntries, generatedDialogue, isAudioInSync, wordTimings]);
   const highlightEnabled = Boolean(
-    audioUrl &&
-      isAudioInSync &&
-      wordTimings.length > 0 &&
-      highlightRanges.length > 0 &&
-    highlightRanges.length > 0
+    audioUrl && isAudioInSync && wordTimings.length > 0 && highlightRanges.length > 0
   );
 
   useEffect(() => {
@@ -194,6 +154,7 @@ export default function Homepage() {
     setActiveWordIndex(null);
     setIsAudioPlaying(false);
     setAudioError(null);
+    setShouldAutoplayAudio(false);
   }, []);
 
   const handlePromptSubmit = useCallback(
@@ -319,6 +280,7 @@ export default function Homepage() {
       const blob = base64ToBlob(payload.audioBase64);
       const objectUrl = URL.createObjectURL(blob);
       audioObjectUrlRef.current = objectUrl;
+      setShouldAutoplayAudio(true);
       setAudioUrl(objectUrl);
       setIsAudioPlaying(false);
 
@@ -404,6 +366,53 @@ export default function Homepage() {
       audioElement.removeEventListener("pause", handlePause);
     };
   }, [audioUrl, wordTimings]);
+
+  useEffect(() => {
+    if (!audioUrl || !shouldAutoplayAudio || !isAudioInSync) {
+      return;
+    }
+
+    let cancelled = false;
+    let rafId: number | null = null;
+
+    const attemptAutoplay = () => {
+      if (cancelled) return;
+      const audioElement = audioRef.current;
+      if (!audioElement) {
+        rafId = requestAnimationFrame(attemptAutoplay);
+        return;
+      }
+      audioElement.currentTime = 0;
+
+      audioElement
+        .play()
+        .then(() => {
+          if (!cancelled) {
+            setIsAudioPlaying(true);
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            console.warn("[dialogue audio] Autoplay failed", error);
+            setIsAudioPlaying(false);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setShouldAutoplayAudio(false);
+          }
+        });
+    };
+
+    attemptAutoplay();
+
+    return () => {
+      cancelled = true;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [audioUrl, isAudioInSync, shouldAutoplayAudio]);
 
   useEffect(() => {
     const stopTracking = () => {

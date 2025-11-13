@@ -11,15 +11,15 @@ const DEFAULT_OUTPUT_FORMAT = "mp3_44100_128"
 
 const LANGUAGE_VOICE_MAP: Record<string, VoiceProfile> = {
   en: {
-    voiceId: "JBFqnCBsd6RMkjVDRZzb", // Matilda
-    label: "Matilda",
+    voiceId: "21m00Tcm4TlvDq8ikWAM", // Rachel
+    label: "Rachel",
     modelId: DEFAULT_MODEL_ID,
     outputFormat: DEFAULT_OUTPUT_FORMAT,
     optimizeStreamingLatency: 1,
   },
   fr: {
-    voiceId: "EXAVITQu4vr4xnSDxMaL", // Bella
-    label: "Bella",
+    voiceId: "AZnzlk1XvdvUeBnXmlld", // Domi
+    label: "Domi",
     modelId: DEFAULT_MODEL_ID,
     outputFormat: DEFAULT_OUTPUT_FORMAT,
     optimizeStreamingLatency: 1,
@@ -32,8 +32,8 @@ const LANGUAGE_VOICE_MAP: Record<string, VoiceProfile> = {
     optimizeStreamingLatency: 1,
   },
   de: {
-    voiceId: "VR6AewLTigWG4xSOukaG", // Arnold
-    label: "Arnold",
+    voiceId: "EXAVITQu4vr4xnSDxMaL", // Sarah
+    label: "Sarah",
     modelId: DEFAULT_MODEL_ID,
     outputFormat: DEFAULT_OUTPUT_FORMAT,
     optimizeStreamingLatency: 1,
@@ -46,8 +46,8 @@ const LANGUAGE_VOICE_MAP: Record<string, VoiceProfile> = {
     optimizeStreamingLatency: 1,
   },
   pt: {
-    voiceId: "TxGEqnHWrfWFTfGW9XjX", // Josh
-    label: "Josh",
+    voiceId: "7eUAxNOneHxqfyRS77mW", // Carla
+    label: "Carla",
     modelId: DEFAULT_MODEL_ID,
     outputFormat: DEFAULT_OUTPUT_FORMAT,
     optimizeStreamingLatency: 1,
