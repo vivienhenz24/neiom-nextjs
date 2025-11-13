@@ -78,11 +78,17 @@ export async function POST(request: Request) {
         voiceId,
       })
 
-    return new Response(audioBuffer, {
+    const responseBody =
+      audioBuffer instanceof Buffer
+        ? audioBuffer.buffer.slice(audioBuffer.byteOffset, audioBuffer.byteOffset + audioBuffer.byteLength)
+        : audioBuffer
+    const contentLength = audioBuffer.byteLength ?? audioBuffer.length
+
+    return new Response(responseBody, {
       status: 200,
       headers: {
         "Content-Type": mimeType,
-        "Content-Length": audioBuffer.length.toString(),
+        "Content-Length": contentLength.toString(),
         "Cache-Control": "no-store",
         "X-Pronunciation-Voice": resolvedVoiceId,
         "X-Pronunciation-Format": outputFormat,
