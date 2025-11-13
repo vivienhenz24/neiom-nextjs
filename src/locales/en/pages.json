@@ -42,7 +42,7 @@
       "description": "This is a test page to verify the top bar works correctly across different pages."
     },
     "demo": {
-      "title": "Demo Diaglogue INNL",
+      "title": "Demo Diaglogue INLL",
       "introTitle": "Welcome to Text-to-Speech",
       "introDescription": "Enter your text below and configure the voice settings on the right. Click Submit to generate speech audio.",
       "promptLabel": "Enter your prompt or text",
@@ -99,7 +99,7 @@
     "topBar": {
       "pageTitles": {
         "dashboard": "Dashboard",
-        "demoApplication": "Demo Diaglogue INNL",
+        "demoApplication": "Demo Dialogue INLL",
         "translate": "Translate",
         "test": "Test"
       },
@@ -139,7 +139,7 @@
     },
     "sidebar": {
       "application": "Application",
-      "demoApplication": "Demo Diaglogue INNL",
+      "demoApplication": "Demo Dialogue INLL",
       "translate": "Translate",
       "signOut": "Sign Out"
     }

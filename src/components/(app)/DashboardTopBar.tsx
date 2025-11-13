@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, type CSSProperties } from "react"
 import { usePathname } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -52,14 +52,22 @@ export function DashboardTopBar() {
   // Determine left position based on sidebar state
   // Expanded: left-64 (16rem = 256px), Collapsed: left-16 (4rem = 64px)
   const isSidebarOpen = state === "expanded"
+  const topBarStyle = useMemo<CSSProperties>(() => {
+    return {
+      "--sidebar-topbar-offset": isSidebarOpen
+        ? "var(--sidebar-width)"
+        : "var(--sidebar-width-icon)",
+    } as CSSProperties
+  }, [isSidebarOpen])
 
   return (
-    <header 
+    <header
+      style={topBarStyle}
       className={cn(
-        "fixed top-0 left-0 right-0 h-14 border-b bg-background z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 h-14 border-b bg-background z-50 transition-[left] duration-200 ease-linear",
         // On mobile: full width (left-0)
-        // On desktop: adjust based on sidebar state
-        isSidebarOpen ? "md:left-64" : "md:left-16" // Expanded: 16rem, Collapsed: 4rem
+        // On desktop: adjust based on sidebar state via CSS variable
+        "md:left-[var(--sidebar-topbar-offset)]"
       )}
     >
       <div className="flex h-full items-center justify-between px-6">
