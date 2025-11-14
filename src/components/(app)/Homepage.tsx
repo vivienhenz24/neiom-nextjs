@@ -33,6 +33,13 @@ type DialogueAudioResponseBody = {
   error?: string;
 };
 
+type HighlightFragment = {
+  text: string;
+  rangeStart: number;
+  rangeEnd: number;
+  wordIndex: number | null;
+};
+
 const base64ToBlob = (audioBase64: string, mimeType = "audio/mpeg") => {
   const binary = atob(audioBase64);
   const buffer = new Uint8Array(binary.length);
@@ -122,6 +129,63 @@ export default function Homepage() {
   const highlightEnabled = Boolean(
     audioUrl && isAudioInSync && wordTimings.length > 0 && highlightRanges.length > 0
   );
+  const highlightFragments = useMemo<HighlightFragment[]>(() => {
+    if (!highlightEnabled || !highlightRanges.length) {
+      return [];
+    }
+
+    const fragments: HighlightFragment[] = [];
+    let cursor = 0;
+    const limit = generatedDialogue.length;
+
+    highlightRanges.forEach((range) => {
+      const start = Math.max(0, Math.min(range.start, limit));
+      const end = Math.max(start, Math.min(range.end, limit));
+
+      if (start > cursor) {
+        fragments.push({
+          text: generatedDialogue.slice(cursor, start),
+          rangeStart: cursor,
+          rangeEnd: start,
+          wordIndex: null,
+        });
+      }
+
+      fragments.push({
+        text: generatedDialogue.slice(start, end),
+        rangeStart: start,
+        rangeEnd: end,
+        wordIndex: range.wordIndex,
+      });
+      cursor = end;
+    });
+
+    if (cursor < limit) {
+      fragments.push({
+        text: generatedDialogue.slice(cursor),
+        rangeStart: cursor,
+        rangeEnd: limit,
+        wordIndex: null,
+      });
+    }
+
+    return fragments;
+  }, [generatedDialogue, highlightEnabled, highlightRanges]);
+
+  useEffect(() => {
+    if (!highlightRanges.length) {
+      console.log("[dialogue highlighting] Highlight ranges cleared");
+      return;
+    }
+
+    console.log("[dialogue highlighting] Highlight ranges updated", {
+      count: highlightRanges.length,
+      sample: highlightRanges.slice(0, 20).map((range) => ({
+        ...range,
+        text: generatedDialogue.slice(range.start, range.end),
+      })),
+    });
+  }, [generatedDialogue, highlightRanges]);
 
   useEffect(() => {
     return () => {
@@ -273,7 +337,8 @@ export default function Homepage() {
         normalizedAlignmentCharacters: payload.normalizedAlignment?.characters?.length ?? 0,
       });
       if (payload) {
-        const { audioBase64, ...rest } = payload;
+        const { audioBase64: _unusedAudioData, ...rest } = payload;
+        void _unusedAudioData;
         console.log("[dialogue audio] Full payload (excluding audio data)", rest);
       }
 
@@ -467,52 +532,43 @@ export default function Homepage() {
     };
   }, [highlightEnabled]);
 
-  const renderHighlightedDialogue = () => {
-    if (!highlightEnabled || !highlightRanges.length) {
-      return null;
+  useEffect(() => {
+    if (activeWordIndex === null) {
+      console.log("[dialogue highlighting] Active word cleared");
+      return;
     }
 
-    const fragments: Array<{ text: string; active: boolean }> = [];
-    let cursor = 0;
-
-    highlightRanges.forEach((range) => {
-      const start = Math.max(0, Math.min(range.start, generatedDialogue.length));
-      const end = Math.max(start, Math.min(range.end, generatedDialogue.length));
-
-      if (start > cursor) {
-        fragments.push({
-          text: generatedDialogue.slice(cursor, start),
-          active: false,
-        });
-      }
-
-      fragments.push({
-        text: generatedDialogue.slice(start, end),
-        active: range.wordIndex === activeWordIndex,
-      });
-      cursor = end;
+    const timing = wordTimings[activeWordIndex];
+    console.log("[dialogue highlighting] Active word update", {
+      activeWordIndex,
+      word: timing?.word,
+      startTime: timing?.startTime,
+      endTime: timing?.endTime,
     });
+  }, [activeWordIndex, wordTimings]);
 
-    if (cursor < generatedDialogue.length) {
-      fragments.push({
-        text: generatedDialogue.slice(cursor),
-        active: false,
-      });
+  const renderHighlightedDialogue = () => {
+    if (!highlightFragments.length) {
+      return null;
     }
 
     return (
       <div className="whitespace-pre-wrap text-2xl leading-relaxed text-foreground">
-        {fragments.map((fragment, index) => (
-          <span
-            key={index}
-            className={cn(
-              "transition-colors",
-              fragment.active ? "font-semibold text-purple-700" : "text-foreground"
-            )}
-          >
-            {fragment.text}
-          </span>
-        ))}
+        {highlightFragments.map((fragment) => {
+          const isActive =
+            fragment.wordIndex !== null && fragment.wordIndex === activeWordIndex;
+          return (
+            <span
+              key={`${fragment.rangeStart}-${fragment.rangeEnd}-${fragment.wordIndex ?? "gap"}`}
+              className={cn(
+                "transition-colors",
+                isActive ? "font-semibold text-purple-700" : "text-foreground"
+              )}
+            >
+              {fragment.text}
+            </span>
+          );
+        })}
       </div>
     );
   };
