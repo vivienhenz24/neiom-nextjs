@@ -163,13 +163,6 @@ export const buildWordTimingsFromAlignment = (
     }
 
     const word = transcript.slice(start, end)
-    console.log("[dialogue highlighting] Segment timing candidate", {
-      word,
-      start,
-      end,
-      startTime,
-      endTime,
-    })
 
     timings.push({
       word: transcript.slice(start, end),
@@ -180,12 +173,6 @@ export const buildWordTimingsFromAlignment = (
       wordIndex,
     })
     wordIndex += 1
-  })
-
-  console.log("[dialogue highlighting] Final word timing summary", {
-    transcriptLength: transcript.length,
-    timingCount: timings.length,
-    sample: timings.slice(0, 20),
   })
 
   return { transcript, timings }

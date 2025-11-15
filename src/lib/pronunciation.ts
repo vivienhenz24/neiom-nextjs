@@ -58,7 +58,7 @@ const getGradioClient = async () => {
   if (!gradioClientPromise) {
     gradioClientPromise = Client.connect(LUXEMBOURGISH_SPACE_ID, {
       status_callback: (status: SpaceStatus) => {
-        console.log("[pronunciation:gradio] status update", status.status, status.detail)
+        // Status update callback
       },
     }).catch((error) => {
       gradioClientPromise = null

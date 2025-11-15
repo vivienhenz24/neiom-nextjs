@@ -13,6 +13,7 @@ import { buildHighlightRanges, HighlightRange } from "@/lib/audio-highlighting";
 import { buildTranscriptFromEntries, parseDialogueEntries } from "@/lib/dialogue-text";
 import { cn } from "@/lib/utils";
 import { Loader2, Volume2 } from "lucide-react";
+import { useLocale } from "@/components/LocaleProvider";
 
 const MAX_DIALOGUE_LENGTH = 5000;
 const TURN_COUNT_OPTIONS = [6, 8, 10, 12];
@@ -66,6 +67,7 @@ const findActiveWordIndex = (currentTime: number, timings: WordTiming[]) => {
 };
 
 export default function Homepage() {
+  const { t } = useLocale();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const activeRequestRef = useRef<AbortController | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -113,16 +115,6 @@ export default function Homepage() {
       wordTimings,
     });
 
-    console.log("[dialogue highlighting] Computed highlight ranges", {
-      rangeCount: ranges.length,
-      dialogueEntryCount: dialogueEntries.length,
-      isAudioInSync,
-      hasWordTimings: wordTimings.length > 0,
-      rangesDetail: ranges.map((range) => ({
-        ...range,
-        text: generatedDialogue.slice(range.start, range.end),
-      })),
-    });
 
     return ranges;
   }, [audioUrl, dialogueEntries, generatedDialogue, isAudioInSync, wordTimings]);
@@ -173,18 +165,7 @@ export default function Homepage() {
   }, [generatedDialogue, highlightEnabled, highlightRanges]);
 
   useEffect(() => {
-    if (!highlightRanges.length) {
-      console.log("[dialogue highlighting] Highlight ranges cleared");
-      return;
-    }
-
-    console.log("[dialogue highlighting] Highlight ranges updated", {
-      count: highlightRanges.length,
-      sample: highlightRanges.slice(0, 20).map((range) => ({
-        ...range,
-        text: generatedDialogue.slice(range.start, range.end),
-      })),
-    });
+    // Highlight ranges effect
   }, [generatedDialogue, highlightRanges]);
 
   useEffect(() => {
@@ -252,7 +233,7 @@ export default function Homepage() {
 
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
-          const message = payload?.error ?? "Unable to generate dialogue.";
+          const message = payload?.error ?? t.dialogueUnableToGenerate;
           throw new Error(message);
         }
 
@@ -278,7 +259,6 @@ export default function Homepage() {
         }
       } catch (err) {
         if ((err as Error)?.name === "AbortError") {
-          console.log("[dialogue] Previous request aborted");
           return;
         }
 
@@ -293,7 +273,7 @@ export default function Homepage() {
         setIsGenerating(false);
       }
     },
-    [resetAudioState, selectedLanguage, turnCount]
+    [resetAudioState, selectedLanguage, turnCount, t]
   );
 
   const handleGenerateAudio = useCallback(async () => {
@@ -304,7 +284,6 @@ export default function Homepage() {
 
     setIsGeneratingAudio(true);
     setAudioError(null);
-    console.log("[dialogue audio] Sending script to API:\n", script);
 
     try {
       const response = await fetch("/api/dialogue/audio", {
@@ -319,27 +298,20 @@ export default function Homepage() {
       const payload = (await response.json().catch(() => ({}))) as DialogueAudioResponseBody;
 
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Unable to generate dialogue audio.");
+        throw new Error(payload?.error ?? t.dialogueUnableToGenerateAudio);
       }
 
       if (!payload?.audioBase64) {
-        throw new Error("The audio response did not include any audio data.");
+        throw new Error(t.dialogueAudioDataMissing);
       }
 
       if (audioObjectUrlRef.current) {
         URL.revokeObjectURL(audioObjectUrlRef.current);
       }
 
-      console.log("[dialogue audio] Payload received from API", {
-        hasAudio: Boolean(payload.audioBase64),
-        transcriptLength: payload.transcript?.length ?? 0,
-        alignmentCharacters: payload.alignment?.characters?.length ?? 0,
-        normalizedAlignmentCharacters: payload.normalizedAlignment?.characters?.length ?? 0,
-      });
       if (payload) {
-        const { audioBase64: _unusedAudioData, ...rest } = payload;
+        const { audioBase64: _unusedAudioData } = payload;
         void _unusedAudioData;
-        console.log("[dialogue audio] Full payload (excluding audio data)", rest);
       }
 
       const blob = base64ToBlob(payload.audioBase64);
@@ -360,12 +332,12 @@ export default function Homepage() {
       const message =
         err instanceof Error && err.message
           ? err.message
-          : "Unable to generate dialogue audio right now.";
+          : t.dialogueUnableToGenerateAudio;
       setAudioError(message);
     } finally {
       setIsGeneratingAudio(false);
     }
-  }, [generatedDialogue, isGeneratingAudio, selectedLanguage]);
+  }, [generatedDialogue, isGeneratingAudio, selectedLanguage, t]);
 
   const handleDialogueAudioButtonClick = useCallback(() => {
     if (isGeneratingAudio || isGenerating) {
@@ -533,18 +505,7 @@ export default function Homepage() {
   }, [highlightEnabled]);
 
   useEffect(() => {
-    if (activeWordIndex === null) {
-      console.log("[dialogue highlighting] Active word cleared");
-      return;
-    }
-
-    const timing = wordTimings[activeWordIndex];
-    console.log("[dialogue highlighting] Active word update", {
-      activeWordIndex,
-      word: timing?.word,
-      startTime: timing?.startTime,
-      endTime: timing?.endTime,
-    });
+    // Active word tracking effect
   }, [activeWordIndex, wordTimings]);
 
   const renderHighlightedDialogue = () => {
@@ -585,12 +546,12 @@ export default function Homepage() {
         [
         <span>
           {isGeneratingAudio
-            ? "Generating dialogue audio"
+            ? t.dialogueGeneratingAudio
             : audioUrl && isAudioInSync
               ? isAudioPlaying
-                ? "Pause dialogue audio"
-                : "Play dialogue audio"
-              : "Generate dialogue audio"}
+                ? t.dialoguePauseAudio
+                : t.dialoguePlayAudio
+              : t.dialogueGenerateAudio}
         </span>
         {isGeneratingAudio ? <Loader2 className="h-5 w-5 animate-spin" /> : <Volume2 className="h-5 w-5" />}
         ]
@@ -600,7 +561,7 @@ export default function Homepage() {
           <audio ref={audioRef} src={audioUrl ?? undefined} className="hidden" preload="metadata" />
           {!isAudioInSync && (
             <p className="mt-2 text-xs text-amber-600">
-              The dialogue changed since this audio was generated. Generate again to sync highlights.
+              {t.dialogueAudioOutOfSync}
             </p>
           )}
         </>
@@ -617,7 +578,7 @@ export default function Homepage() {
           value={generatedDialogue}
           onChange={(event) => setGeneratedDialogue(event.target.value.slice(0, MAX_DIALOGUE_LENGTH))}
           readOnly={isGenerating}
-          placeholder="Describe the dialogue scenario or paste your script..."
+          placeholder={t.dialoguePlaceholder}
           className={cn(
             "h-full w-full resize-none border-none bg-transparent px-4 py-4 text-2xl leading-relaxed caret-black focus-visible:border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none",
             highlightEnabled && "text-transparent caret-purple-600"

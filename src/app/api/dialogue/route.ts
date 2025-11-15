@@ -152,15 +152,6 @@ export async function POST(request: Request) {
     speakerBLanguage,
   })
 
-  console.log("[dialogue API] Generating dialogue", {
-    promptLength: prompt.length,
-    speakerA,
-    speakerB,
-    turnCount,
-    speakerALanguage,
-    speakerBLanguage,
-  })
-
   try {
     const responseStream = await openai.responses.stream({
       model: "gpt-4.1-mini",
@@ -202,9 +193,6 @@ export async function POST(request: Request) {
 
           const finalResponse = await responseStream.finalResponse()
           const finalText = finalResponse.output_text ?? ""
-          console.log("[dialogue API] Dialogue generated", {
-            outputLength: finalText.length,
-          })
           controller.close()
         } catch (error) {
           console.error("[dialogue API] Streaming failed", error)

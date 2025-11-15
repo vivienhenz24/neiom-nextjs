@@ -69,11 +69,6 @@ export async function POST(request: Request) {
     )
   }
 
-  console.log("[pronounce API] Generating audio", {
-    textLength: text.length,
-    languageCode: languageCode ?? "default",
-    voiceOverride: Boolean(voiceId),
-  })
 
   try {
     const { audioBuffer, mimeType, voiceId: resolvedVoiceId, outputFormat } =

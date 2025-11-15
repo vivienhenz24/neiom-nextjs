@@ -65,20 +65,11 @@ export const synthesizeDialogueAudio = async ({ script, language }: DialogueAudi
     throw new Error("Unable to find dialogue lines to convert.")
   }
 
-  console.log("[dialogue audio] Full trimmed script being synthesized:\n", trimmedScript)
-
-  console.log("[dialogue audio] Preparing synthesis request", {
-    entryCount: entries.length,
-    totalCharacters: trimmedScript.length,
-    language: language ?? "default",
-  })
 
   const inputs = entries.map((entry, index) => ({
     text: entry.normalizedText,
     voiceId: selectVoiceForEntry(entry.speakerLabel, index, language),
   }))
-
-  console.log("[dialogue audio] Inputs detail", inputs)
 
   const requestPayload: Parameters<typeof client.textToDialogue.convertWithTimestamps>[0] = {
     outputFormat: DIALOGUE_OUTPUT_FORMAT,
@@ -91,20 +82,6 @@ export const synthesizeDialogueAudio = async ({ script, language }: DialogueAudi
   }
 
   const response = await client.textToDialogue.convertWithTimestamps(requestPayload)
-  console.log("[dialogue audio] Received ElevenLabs response", {
-    hasAudio: Boolean(response.audioBase64),
-    alignmentCharacters: response.alignment?.characters?.length ?? 0,
-    normalizedAlignmentCharacters: response.normalizedAlignment?.characters?.length ?? 0,
-    voiceSegmentCount: response.voiceSegments?.length ?? 0,
-  })
-  console.log("[dialogue audio] Alignment transcript (raw)", response.alignment?.characters?.join(""))
-  console.log(
-    "[dialogue audio] Alignment transcript (normalized)",
-    response.normalizedAlignment?.characters?.join("")
-  )
-  if (response.voiceSegments?.length) {
-    console.log("[dialogue audio] Voice segments detail", response.voiceSegments)
-  }
 
   return {
     response,

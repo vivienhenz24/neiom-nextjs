@@ -149,7 +149,6 @@ export function TranslatePage() {
 
     const nextHash = hashPronunciationRequest(trimmedTranslation)
     if (lastPronouncedHashRef.current === nextHash && audioUrl) {
-      console.log("[pronounce] Using cached audio for current translation")
       return
     }
 
@@ -185,7 +184,6 @@ export function TranslatePage() {
       audioObjectUrlRef.current = objectUrl
       setAudioUrl(objectUrl)
       lastPronouncedHashRef.current = nextHash
-      console.log("[pronounce] Audio generated")
     } catch (err) {
       console.error("[pronounce] Generation failed", err)
       const message =
@@ -214,13 +212,11 @@ export function TranslatePage() {
   const handleTranslate = async () => {
     if (!inputText.trim()) {
       setError(t.enterTextBeforeTranslation)
-      console.log("[translate] blocked: empty input")
       return
     }
 
     if (!inputLanguage) {
       setError(t.selectLanguageRequired)
-      console.log("[translate] blocked: no source language selected")
       return
     }
 
@@ -228,13 +224,6 @@ export function TranslatePage() {
     setIsLoading(true)
     setError(null)
     setTranslation("")
-    console.log("[translate] sending request", {
-      sourceLanguage: inputLanguage,
-      targetLanguage: outputLanguage,
-      sourceLanguageLabel: sourceLanguageDisplayName,
-      targetLanguageLabel: targetLanguageDisplayName,
-      textLength: inputText.trim().length,
-    })
 
     try {
       const { translation } = await translateText(
@@ -252,17 +241,15 @@ export function TranslatePage() {
         }
       )
       setTranslation(translation)
-      console.log("[translate] success", { translationLength: translation.length })
     } catch (err) {
       console.error("Translation failed", err)
       if (err instanceof Error && err.message) {
         setError(err.message)
       } else {
-      setError(t.unableToTranslate)
+        setError(t.unableToTranslate)
       }
     } finally {
       setIsLoading(false)
-      console.log("[translate] request finished")
     }
   }
 

@@ -118,6 +118,21 @@
         "keyboardShortcuts": "Tastaturkürzel"
       }
     },
+    "dialogue": {
+      "placeholder": "Beschreiwt e Gespréich dat Dir tëscht zwou Leit wëllt. Wielt Är Sprooch an d'Zuel vun de Ronder ënnen, dann ofschécken. Wann d'Gespréich generéiert ass, kënnt Dir d'Audio generéieren a mat synchroniséierter Wuertmarkéierung lauschteren.",
+      "generatingAudio": "Generéiert Gespréichsaudio",
+      "playAudio": "Gespréichsaudio ofspillen",
+      "pauseAudio": "Gespréichsaudio pauséieren",
+      "generateAudio": "Gespréichsaudio generéieren",
+      "audioOutOfSync": "D'Gespréich huet sech geännert zënter dëst Audio generéiert gouf. Generéiert nach emol fir d'Markéierungen ze synchroniséieren.",
+      "unableToGenerateDialogue": "Kann d'Gespréich net generéieren.",
+      "unableToGenerateAudio": "Kann elo d'Gespréichsaudio net generéieren.",
+      "audioDataMissing": "D'Audio-Äntwert huet keng Audiodaten enthalen.",
+      "chatInputPlaceholder": "Beschreiwt d'Szene déi Dir generéiere wëllt...",
+      "languageLabel": "Sprooch",
+      "turnCountLabel": "Zuel vun de Ronder",
+      "turns": "Ronder"
+    },
     "translate": {
       "selectLanguage": "Sprooch auswielen",
       "selectLanguagePlaceholder": "Sprooch auswielen",
