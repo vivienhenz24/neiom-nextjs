@@ -19,8 +19,8 @@ const DIALOGUE_LANGUAGE_VOICES: Record<string, DialogueVoicePair> = {
     speakerB: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam" },
   },
   fr: {
-    speakerA: { voiceId: "AZnzlk1XvdvUeBnXmlld", label: "Domi" },
-    speakerB: { voiceId: "pNInz6obpgDQGcFmaJgB", label: "Adam" },
+    speakerA: { voiceId: "O31r762Gb3WFygrEOGh0", label: "Domi" },
+    speakerB: { voiceId: "AfbuxQ9DVtS4azaxN1W7", label: "Adam" },
   },
   de: {
     speakerA: { voiceId: "EXAVITQu4vr4xnSDxMaL", label: "Sarah" },
