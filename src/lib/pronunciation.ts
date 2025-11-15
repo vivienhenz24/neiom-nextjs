@@ -56,10 +56,13 @@ const getElevenLabsClient = () => {
 
 const getGradioClient = async () => {
   if (!gradioClientPromise) {
-    const hfApiKey = process.env.HUGGINGFACE_API_KEY
+    const hfApiKey = process.env.HF_TOKEN
+    console.log("[pronunciation:gradio] Connecting to Gradio space:", LUXEMBOURGISH_SPACE_ID)
+    console.log("[pronunciation:gradio] HF API key found:", hfApiKey ? "yes" : "no")
+    
     const connectOptions: Parameters<typeof Client.connect>[1] = {
       status_callback: (status: SpaceStatus) => {
-        // Status update callback
+        console.log("[pronunciation:gradio] Status update:", status.stage, status.message)
       },
     }
 
@@ -68,12 +71,21 @@ const getGradioClient = async () => {
       connectOptions.headers = {
         Authorization: `Bearer ${hfApiKey}`,
       }
+      console.log("[pronunciation:gradio] Using authenticated connection for higher priority")
+    } else {
+      console.warn("[pronunciation:gradio] No HF_TOKEN found - using unauthenticated connection")
     }
 
-    gradioClientPromise = Client.connect(LUXEMBOURGISH_SPACE_ID, connectOptions).catch((error) => {
-      gradioClientPromise = null
-      throw error
-    })
+    gradioClientPromise = Client.connect(LUXEMBOURGISH_SPACE_ID, connectOptions)
+      .then((client) => {
+        console.log("[pronunciation:gradio] Successfully connected to Gradio space")
+        return client
+      })
+      .catch((error) => {
+        console.error("[pronunciation:gradio] Failed to connect to Gradio space:", error)
+        gradioClientPromise = null
+        throw error
+      })
   }
 
   return gradioClientPromise
@@ -81,9 +93,11 @@ const getGradioClient = async () => {
 
 const getGradioEndpointMetadata = async () => {
   if (gradioEndpointMetadata) {
+    console.log("[pronunciation:gradio] Using cached endpoint metadata:", gradioEndpointMetadata.name)
     return gradioEndpointMetadata
   }
 
+  console.log("[pronunciation:gradio] Fetching endpoint metadata from API")
   const client = await getGradioClient()
   const apiInfo = await client.view_api()
 
@@ -106,6 +120,8 @@ const getGradioEndpointMetadata = async () => {
     name: audioEndpoint[0],
     parameters: audioEndpoint[1].parameters,
   }
+
+  console.log("[pronunciation:gradio] Found audio endpoint:", gradioEndpointMetadata.name)
 
   return gradioEndpointMetadata
 }
@@ -220,17 +236,23 @@ const synthesizeElevenLabsPronunciation = async ({
 
 const synthesizeLuxembourgishPronunciation = async (text: string): Promise<SynthesizedPronunciation> => {
   try {
+    console.log("[pronunciation:gradio] Starting Luxembourgish pronunciation synthesis for text:", text.substring(0, 50) + (text.length > 50 ? "..." : ""))
     const client = await getGradioClient()
     const endpoint = await getGradioEndpointMetadata()
     const payload = buildLuxembourgishPayload(endpoint.parameters, text)
+    console.log("[pronunciation:gradio] Calling predict on endpoint:", endpoint.name)
     const result = await client.predict(endpoint.name, payload)
+    console.log("[pronunciation:gradio] Prediction completed, extracting audio reference")
     const audioReference = extractAudioReference(result.data)
 
     if (!audioReference) {
+      console.error("[pronunciation:gradio] No audio reference found in prediction result")
       throw new Error("Luxembourgish pronunciation response did not contain an audio reference.")
     }
 
+    console.log("[pronunciation:gradio] Audio reference found, downloading audio:", audioReference)
     const { audioBuffer, mimeType } = await downloadLuxembourgishAudio(client, audioReference)
+    console.log("[pronunciation:gradio] Audio downloaded successfully, size:", audioBuffer.length, "bytes, mimeType:", mimeType)
 
     return {
       audioBuffer,
@@ -340,14 +362,17 @@ const extractAudioReference = (payload: unknown): string | null => {
 
 const downloadLuxembourgishAudio = async (client: Client, reference: string) => {
   const url = createGradioAssetUrl(client, reference)
+  console.log("[pronunciation:gradio] Downloading audio from:", url)
   const response = await client.fetch(url)
 
   if (!response.ok) {
+    console.error("[pronunciation:gradio] Failed to download audio, status:", response.status)
     throw new Error(`Failed to download Luxembourgish pronunciation audio (${response.status}).`)
   }
 
   const arrayBuffer = await response.arrayBuffer()
   const mimeType = response.headers.get("content-type") ?? DEFAULT_AUDIO_MIME_TYPE
+  console.log("[pronunciation:gradio] Audio download successful, content-type:", mimeType)
 
   return {
     audioBuffer: Buffer.from(arrayBuffer),
