@@ -56,11 +56,21 @@ const getElevenLabsClient = () => {
 
 const getGradioClient = async () => {
   if (!gradioClientPromise) {
-    gradioClientPromise = Client.connect(LUXEMBOURGISH_SPACE_ID, {
+    const hfApiKey = process.env.HUGGINGFACE_API_KEY
+    const connectOptions: Parameters<typeof Client.connect>[1] = {
       status_callback: (status: SpaceStatus) => {
         // Status update callback
       },
-    }).catch((error) => {
+    }
+
+    // Add headers with API key if available to get higher priority in ZeroGPU queues
+    if (hfApiKey) {
+      connectOptions.headers = {
+        Authorization: `Bearer ${hfApiKey}`,
+      }
+    }
+
+    gradioClientPromise = Client.connect(LUXEMBOURGISH_SPACE_ID, connectOptions).catch((error) => {
       gradioClientPromise = null
       throw error
     })
