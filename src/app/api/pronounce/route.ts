@@ -28,11 +28,6 @@ const normalizedSupportedLanguages = new Set(
 )
 
 export async function POST(request: Request) {
-  if (!process.env.ELEVENLABS_API_KEY) {
-    console.error("[pronounce API] Missing ELEVENLABS_API_KEY")
-    return NextResponse.json({ error: "Pronunciation service is not configured." }, { status: 500 })
-  }
-
   let payload: PronouncePayload
 
   try {
@@ -61,6 +56,16 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: `Pronunciation for ${languageCode} is not supported.` },
       { status: 400 }
+    )
+  }
+
+  const requiresElevenLabsKey = !languageCode || languageCode !== "lb"
+
+  if (requiresElevenLabsKey && !process.env.ELEVENLABS_API_KEY) {
+    console.error("[pronounce API] Missing ELEVENLABS_API_KEY for non-Luxembourgish request")
+    return NextResponse.json(
+      { error: "Pronunciation service is not configured for the requested language." },
+      { status: 500 }
     )
   }
 
