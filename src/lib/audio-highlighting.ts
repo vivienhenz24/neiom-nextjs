@@ -22,45 +22,98 @@ export const buildHighlightRanges = ({
 
   const scriptLength = script.length
   const ranges: HighlightRange[] = []
+  let entryIndex = 0
 
   wordTimings.forEach((timing) => {
-    const overlappingEntries = dialogueEntries.filter(
-      (entry) =>
-        timing.transcriptStartIndex < entry.transcriptEndIndex &&
-        timing.transcriptEndIndex > entry.transcriptStartIndex
-    )
+    console.log("[audio highlighting] Processing word timing", {
+      wordIndex: timing.wordIndex,
+      startTime: timing.startTime,
+      endTime: timing.endTime,
+      transcriptStartIndex: timing.transcriptStartIndex,
+      transcriptEndIndex: timing.transcriptEndIndex,
+      word: timing.word,
+    })
 
-    overlappingEntries.forEach((entry) => {
-      if (!entry.normalizedToOriginalMap.length) {
-        return
+    while (
+      entryIndex < dialogueEntries.length &&
+      dialogueEntries[entryIndex].transcriptEndIndex <= timing.transcriptStartIndex
+    ) {
+      entryIndex += 1
+    }
+
+    let currentIndex = entryIndex
+    while (currentIndex < dialogueEntries.length) {
+      const entry = dialogueEntries[currentIndex]
+      if (entry.transcriptStartIndex >= timing.transcriptEndIndex) {
+        break
       }
 
-      const entryRelativeStart = Math.max(
+      if (!entry.normalizedToOriginalMap.length) {
+        currentIndex += 1
+        continue
+      }
+
+      const overlapStart = Math.max(
         0,
         timing.transcriptStartIndex - entry.transcriptStartIndex
       )
-      const entryRelativeEnd = Math.max(
-        entryRelativeStart + 1,
+      const overlapEnd =
         Math.min(timing.transcriptEndIndex, entry.transcriptEndIndex) -
-          entry.transcriptStartIndex
-      )
+        entry.transcriptStartIndex
 
-      const map = entry.normalizedToOriginalMap
-      const clampToEntry = (value: number) =>
-        map[Math.min(Math.max(value, 0), map.length - 1)] ?? entry.spokenStartIndex
+      if (overlapEnd <= overlapStart) {
+        currentIndex += 1
+        continue
+      }
 
-      const normalizedStart = clampToEntry(entryRelativeStart)
-      const normalizedEnd = clampToEntry(entryRelativeEnd - 1) + 1
+      if (overlapEnd > entry.normalizedToOriginalMap.length) {
+        console.warn("[audio highlighting] Word timing exceeds dialogue entry bounds", {
+          entryIndex: entry.lineIndex,
+          overlapStart,
+          overlapEnd,
+          mapLength: entry.normalizedToOriginalMap.length,
+        })
+        break
+      }
 
+      const normalizedStart = entry.normalizedToOriginalMap[overlapStart]
+      const normalizedEndBase = entry.normalizedToOriginalMap[overlapEnd - 1]
+
+      if (typeof normalizedStart !== "number" || typeof normalizedEndBase !== "number") {
+        console.warn("[audio highlighting] Incomplete normalized index mapping", {
+          entryIndex: entry.lineIndex,
+          overlapStart,
+          overlapEnd,
+        })
+        break
+      }
+
+      const normalizedEnd = normalizedEndBase + 1
       const start = Math.max(0, Math.min(normalizedStart, scriptLength))
       const end = Math.max(start, Math.min(normalizedEnd, scriptLength))
+
+      console.log("[audio highlighting] Derived range for word", {
+        wordIndex: timing.wordIndex,
+        entryLine: entry.lineIndex,
+        overlapStart,
+        overlapEnd,
+        scriptStart: start,
+        scriptEnd: end,
+        text: script.slice(start, end),
+      })
 
       ranges.push({
         start,
         end,
         wordIndex: timing.wordIndex,
       })
-    })
+
+      if (timing.transcriptEndIndex <= entry.transcriptEndIndex) {
+        break
+      }
+
+      currentIndex += 1
+    }
   })
 
   return ranges.sort((a, b) => a.start - b.start)
