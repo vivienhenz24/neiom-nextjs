@@ -62,7 +62,7 @@ const getGradioClient = async () => {
     
     const connectOptions: Parameters<typeof Client.connect>[1] = {
       status_callback: (status: SpaceStatus) => {
-        console.log("[pronunciation:gradio] Status update:", status.stage, status.message)
+        console.log("[pronunciation:gradio] Status update:", status)
       },
     }
 
