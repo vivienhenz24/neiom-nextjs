@@ -83,16 +83,8 @@ export async function POST(request: Request) {
     sourceLanguageLabel: sourceLabel,
     targetLanguageLabel: targetLabel,
   })
-  console.log("[translate API] Valid payload", {
-    textLength: text.length,
-    sourceLanguage,
-    targetLanguage,
-    sourceLabel,
-    targetLabel,
-  })
 
   try {
-    console.log("[translate API] Calling OpenAI")
     const responseStream = await openai.responses.stream({
       model: "gpt-4.1-nano",
       temperature: 0.2,
@@ -128,9 +120,6 @@ export async function POST(request: Request) {
 
           const finalResponse = await responseStream.finalResponse()
           const finalText = finalResponse.output_text ?? ""
-          console.log("[translate API] Translation success", {
-            translationLength: finalText.length,
-          })
           controller.close()
         } catch (error) {
           console.error("[translate API] Streaming failed", error)

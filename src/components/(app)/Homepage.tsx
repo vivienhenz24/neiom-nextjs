@@ -113,16 +113,6 @@ export default function Homepage() {
       wordTimings,
     });
 
-    console.log("[dialogue highlighting] Computed highlight ranges", {
-      rangeCount: ranges.length,
-      dialogueEntryCount: dialogueEntries.length,
-      isAudioInSync,
-      hasWordTimings: wordTimings.length > 0,
-      rangesDetail: ranges.map((range) => ({
-        ...range,
-        text: generatedDialogue.slice(range.start, range.end),
-      })),
-    });
 
     return ranges;
   }, [audioUrl, dialogueEntries, generatedDialogue, isAudioInSync, wordTimings]);
@@ -173,18 +163,7 @@ export default function Homepage() {
   }, [generatedDialogue, highlightEnabled, highlightRanges]);
 
   useEffect(() => {
-    if (!highlightRanges.length) {
-      console.log("[dialogue highlighting] Highlight ranges cleared");
-      return;
-    }
-
-    console.log("[dialogue highlighting] Highlight ranges updated", {
-      count: highlightRanges.length,
-      sample: highlightRanges.slice(0, 20).map((range) => ({
-        ...range,
-        text: generatedDialogue.slice(range.start, range.end),
-      })),
-    });
+    // Highlight ranges effect
   }, [generatedDialogue, highlightRanges]);
 
   useEffect(() => {
@@ -278,7 +257,6 @@ export default function Homepage() {
         }
       } catch (err) {
         if ((err as Error)?.name === "AbortError") {
-          console.log("[dialogue] Previous request aborted");
           return;
         }
 
@@ -304,7 +282,6 @@ export default function Homepage() {
 
     setIsGeneratingAudio(true);
     setAudioError(null);
-    console.log("[dialogue audio] Sending script to API:\n", script);
 
     try {
       const response = await fetch("/api/dialogue/audio", {
@@ -330,16 +307,9 @@ export default function Homepage() {
         URL.revokeObjectURL(audioObjectUrlRef.current);
       }
 
-      console.log("[dialogue audio] Payload received from API", {
-        hasAudio: Boolean(payload.audioBase64),
-        transcriptLength: payload.transcript?.length ?? 0,
-        alignmentCharacters: payload.alignment?.characters?.length ?? 0,
-        normalizedAlignmentCharacters: payload.normalizedAlignment?.characters?.length ?? 0,
-      });
       if (payload) {
-        const { audioBase64: _unusedAudioData, ...rest } = payload;
+        const { audioBase64: _unusedAudioData } = payload;
         void _unusedAudioData;
-        console.log("[dialogue audio] Full payload (excluding audio data)", rest);
       }
 
       const blob = base64ToBlob(payload.audioBase64);
@@ -533,18 +503,7 @@ export default function Homepage() {
   }, [highlightEnabled]);
 
   useEffect(() => {
-    if (activeWordIndex === null) {
-      console.log("[dialogue highlighting] Active word cleared");
-      return;
-    }
-
-    const timing = wordTimings[activeWordIndex];
-    console.log("[dialogue highlighting] Active word update", {
-      activeWordIndex,
-      word: timing?.word,
-      startTime: timing?.startTime,
-      endTime: timing?.endTime,
-    });
+    // Active word tracking effect
   }, [activeWordIndex, wordTimings]);
 
   const renderHighlightedDialogue = () => {

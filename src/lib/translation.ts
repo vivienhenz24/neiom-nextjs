@@ -23,11 +23,6 @@ export async function translateText(
 	payload: TranslationRequest,
 	options?: TranslateTextOptions,
 ): Promise<TranslationResponse> {
-	console.log("[translation] calling /api/translate", {
-		sourceLanguage: payload.sourceLanguage,
-		targetLanguage: payload.targetLanguage,
-		textLength: payload.text.length,
-	});
 
 	const response = await fetch("/api/translate", {
 		method: "POST",
@@ -42,7 +37,6 @@ export async function translateText(
 		try {
 			const data = await response.json();
 			if (typeof data?.error === "string") {
-				console.log("[translation] api responded with error", data.error);
 				message = data.error;
 			}
 		} catch {
@@ -55,7 +49,6 @@ export async function translateText(
 		throw new Error("Translation response did not include a body.");
 	}
 
-	console.log("[translation] streaming response");
 	const reader = response.body.getReader();
 	const decoder = new TextDecoder();
 	let translation = "";
@@ -77,7 +70,6 @@ export async function translateText(
 	}
 
 	translation = translation.trim();
-	console.log("[translation] stream complete", { translationLength: translation.length });
 
 	return { translation };
 }

@@ -25,14 +25,6 @@ export const buildHighlightRanges = ({
   let entryIndex = 0
 
   wordTimings.forEach((timing) => {
-    console.log("[audio highlighting] Processing word timing", {
-      wordIndex: timing.wordIndex,
-      startTime: timing.startTime,
-      endTime: timing.endTime,
-      transcriptStartIndex: timing.transcriptStartIndex,
-      transcriptEndIndex: timing.transcriptEndIndex,
-      word: timing.word,
-    })
 
     while (
       entryIndex < dialogueEntries.length &&
@@ -91,16 +83,6 @@ export const buildHighlightRanges = ({
       const normalizedEnd = normalizedEndBase + 1
       const start = Math.max(0, Math.min(normalizedStart, scriptLength))
       const end = Math.max(start, Math.min(normalizedEnd, scriptLength))
-
-      console.log("[audio highlighting] Derived range for word", {
-        wordIndex: timing.wordIndex,
-        entryLine: entry.lineIndex,
-        overlapStart,
-        overlapEnd,
-        scriptStart: start,
-        scriptEnd: end,
-        text: script.slice(start, end),
-      })
 
       ranges.push({
         start,
