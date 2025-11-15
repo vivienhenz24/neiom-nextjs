@@ -19,17 +19,17 @@ const RAW_USERS: UserRecord[] = [
 	{
 		email: "vhenz@college.harvard.edu",
 		name: "Vivien Henz",
-		password: "123456",
+		password: "K9mP#xR2$vL8nQ5w",
 	},
 	{
 		email: "laura.hencks@inll.lu",
 		name: "Laura Hencks",
-		password: "123456",
+		password: "M7tY@bN4%fH3jX6z",
 	},
 	{
 		email: "luc.schmitz@inll.lu",
 		name: "Luc Schmitz",
-		password: "123456",
+		password: "P5sW&cD9!gK2mV8r",
 	},
 ];
 

@@ -118,6 +118,21 @@
         "keyboardShortcuts": "Keyboard Shortcuts"
       }
     },
+    "dialogue": {
+      "placeholder": "Describe a dialogue you want between two people. Select your language and number of turns below, then submit. Once the dialogue is generated, you can generate the audio and listen to it with synchronized word highlighting.",
+      "generatingAudio": "Generating dialogue audio",
+      "playAudio": "Play dialogue audio",
+      "pauseAudio": "Pause dialogue audio",
+      "generateAudio": "Generate dialogue audio",
+      "audioOutOfSync": "The dialogue changed since this audio was generated. Generate again to sync highlights.",
+      "unableToGenerateDialogue": "Unable to generate dialogue.",
+      "unableToGenerateAudio": "Unable to generate dialogue audio right now.",
+      "audioDataMissing": "The audio response did not include any audio data.",
+      "chatInputPlaceholder": "Describe the scene you want to generate...",
+      "languageLabel": "Language",
+      "turnCountLabel": "Turn count",
+      "turns": "turns"
+    },
     "translate": {
       "selectLanguage": "Select Language",
       "selectLanguagePlaceholder": "Select Language",

@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLocale } from "@/components/LocaleProvider";
 
 type LanguageOption = {
   label: string;
@@ -38,6 +39,7 @@ export default function ChatInputBar({
   languageOptions,
   turnCountOptions,
 }: ChatInputBarProps) {
+  const { t } = useLocale();
   const [value, setValue] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -64,7 +66,7 @@ export default function ChatInputBar({
         <Input
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="Describe the scene you want to generate..."
+          placeholder={t.dialogueChatInputPlaceholder}
           className="flex-1 border-none bg-transparent text-base shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
           aria-label="Dialogue prompt"
           disabled={isSubmitting}
@@ -86,7 +88,7 @@ export default function ChatInputBar({
               className="inline-flex items-center gap-1 rounded-full border border-transparent px-3 py-1 text-left font-semibold transition hover:border-border hover:bg-background/60"
               disabled={isSubmitting}
             >
-              <span className="uppercase tracking-wide text-[11px] text-muted-foreground">Language</span>
+              <span className="uppercase tracking-wide text-[11px] text-muted-foreground">{t.dialogueLanguageLabel}</span>
               <span className="text-foreground">
                 {languageOptions.find((option) => option.value === selectedLanguage)?.label ??
                   selectedLanguage.toUpperCase()}
@@ -109,14 +111,14 @@ export default function ChatInputBar({
               className="inline-flex items-center gap-1 rounded-full border border-transparent px-3 py-1 text-left font-semibold transition hover:border-border hover:bg-background/60"
               disabled={isSubmitting}
             >
-              <span className="uppercase tracking-wide text-[11px] text-muted-foreground">Turn count</span>
+              <span className="uppercase tracking-wide text-[11px] text-muted-foreground">{t.dialogueTurnCountLabel}</span>
               <span className="text-foreground">{selectedTurnCount}</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
             {turnCountOptions.map((option) => (
               <DropdownMenuItem key={option} onSelect={() => onTurnCountChange(option)}>
-                {option} turns
+                {option} {t.dialogueTurns}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
