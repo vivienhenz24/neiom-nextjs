@@ -21,33 +21,11 @@ export async function POST(request: Request) {
 			);
 		}
 
-		const user = validateCredentials(email, password);
-
-		if (!user) {
-			return NextResponse.json(
-				{ error: "Invalid email or password" },
-				{ status: 401 },
-			);
-		}
-
-		const response = NextResponse.json({ success: true });
-		response.cookies.set({
-			name: SESSION_COOKIE_NAME,
-			value: createSessionValue(user.email),
-			httpOnly: true,
-			maxAge: SESSION_MAX_AGE_SECONDS,
-			path: "/",
-			sameSite: "lax",
-			secure: process.env.NODE_ENV === "production",
-		});
-		response.cookies.set({
-			name: "neiom-dev-signed-out",
-			value: "",
-			path: "/",
-			maxAge: 0,
-		});
-
-		return response;
+		// Authentication disabled - all login attempts fail
+		return NextResponse.json(
+			{ error: "Invalid email or password" },
+			{ status: 401 },
+		);
 	} catch {
 		return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 	}
