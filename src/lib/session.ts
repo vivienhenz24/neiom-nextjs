@@ -32,15 +32,16 @@ export async function getSession(headers: Headers): Promise<SimpleSession | null
 		}
 	}
 
-	if (process.env.NODE_ENV === "development") {
-		const signedOut = cookieHeader.includes(DEV_SIGN_OUT_COOKIE);
-		if (!signedOut) {
-			const fallbackUser = getDefaultUser();
-			if (fallbackUser) {
-				return { user: fallbackUser };
-			}
-		}
-	}
+	// Development fallback disabled - authentication required
+	// if (process.env.NODE_ENV === "development") {
+	// 	const signedOut = cookieHeader.includes(DEV_SIGN_OUT_COOKIE);
+	// 	if (!signedOut) {
+	// 		const fallbackUser = getDefaultUser();
+	// 		if (fallbackUser) {
+	// 			return { user: fallbackUser };
+	// 		}
+	// 	}
+	// }
 
 	return null;
 }

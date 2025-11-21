@@ -79,12 +79,8 @@ export function getDefaultUser() {
 }
 
 export function validateCredentials(email: string, password: string) {
-	const record = USER_MAP[normalizeEmail(email)];
-	if (!record || record.password !== password) {
-		return null;
-	}
-
-	return toPublicUser(record);
+	// Authentication disabled - no access allowed
+	return null;
 }
 
 export function createSessionValue(email: string) {
@@ -99,34 +95,6 @@ export function createSessionValue(email: string) {
 }
 
 export function verifySessionValue(value: string) {
-	const [encodedPayload, signature] = value.split(".");
-	if (!encodedPayload || !signature) {
-		return null;
-	}
-
-	const expectedSignature = sign(encodedPayload);
-	if (!secureCompare(signature, expectedSignature)) {
-		return null;
-	}
-
-	try {
-		const payload = JSON.parse(
-			Buffer.from(encodedPayload, "base64url").toString("utf8"),
-		) as {
-			email?: string;
-			exp?: number;
-		};
-
-		if (!payload.email || typeof payload.exp !== "number") {
-			return null;
-		}
-
-		if (Date.now() > payload.exp) {
-			return null;
-		}
-
-		return getUserByEmail(payload.email);
-	} catch {
-		return null;
-	}
+	// Authentication disabled - no access allowed
+	return null;
 }
