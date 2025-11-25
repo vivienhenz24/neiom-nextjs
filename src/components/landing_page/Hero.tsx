@@ -56,11 +56,6 @@ export default function Hero() {
               </Link>
             </div>
           </div>
-          
-          {/* Right Column - Example Carousel */}
-          <div className="mt-8 lg:mt-0">
-            <ExampleItem />
-          </div>
         </div>
       </div>
     </div>
