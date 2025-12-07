@@ -2,6 +2,12 @@
   "heroTitle": "Text-zu-Sprach fir Lëtzebuergesch.",
   "heroDescription": "Neiom ass e modernen TTS Modell, deen speziell fir Lëtzebuerger Text an Audio gebaut gouf. Vun Lëtzebuerger gebaut, fir Lëtzebuerger.",
   "example": "Beispill",
-  "footerTagline": "Text-zu-Sprach Technologie fir Lëtzebuergesch. Modern Léisungen fir Är Geschäft."
+  "footerTagline": "Text-zu-Sprach Technologie fir Lëtzebuergesch. Modern Léisungen fir Är Geschäft.",
+  "tryItOut": "Probéier et aus",
+  "enterText": "Gitt Lëtzebuergesch Text an...",
+  "generateAudio": "Audio generéieren",
+  "generating": "Generéiert...",
+  "modelWeights": "Open-source Modell Gewiichter",
+  "errorGenerating": "Audio konnt net generéiert ginn. Probéiert w.e.g. nach eng Kéier."
 }
 
