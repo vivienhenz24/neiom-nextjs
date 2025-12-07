@@ -136,3 +136,48 @@
     transform: translateY(0);
   }
 }
+
+/* Custom audio player styling to match brutalist design */
+audio {
+  width: 100%;
+  height: 48px;
+}
+
+audio::-webkit-media-controls-panel {
+  background-color: white;
+  border-radius: 0.5rem;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-pause-button {
+  background-color: black;
+  border-radius: 0.25rem;
+  color: white;
+}
+
+audio::-webkit-media-controls-timeline {
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  color: black;
+  font-weight: normal;
+}
+
+audio::-webkit-media-controls-volume-slider {
+  background-color: #e5e7eb;
+  border-radius: 0.25rem;
+}
+
+audio::-webkit-media-controls-mute-button {
+  background-color: black;
+  border-radius: 0.25rem;
+  color: white;
+}
+
+/* Firefox audio player styling */
+audio {
+  filter: none;
+}

@@ -13,84 +13,42 @@ export default function Hero() {
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = useCallback(async () => {
-    console.log('[Hero] Generate button clicked');
     if (!text.trim()) {
-      console.log('[Hero] Validation failed: text is empty');
       setError("Please enter some text");
       return;
     }
 
-    console.log('[Hero] Starting generation with text:', text.trim());
     setIsGenerating(true);
     setError(null);
     setAudioUrl(null);
 
     try {
-      const requestBody = { text: text.trim() };
-      console.log('[Hero] Preparing fetch request...');
-      console.log('[Hero] Request body:', requestBody);
-      console.log('[Hero] Request URL:', '/api/tts');
-      
-      const fetchStartTime = Date.now();
-      console.log('[Hero] Sending fetch request to /api/tts at', new Date().toISOString());
-      
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.error('[Hero] Fetch timeout after 60 seconds');
         controller.abort();
       }, 60000); // 60 second timeout
 
-      let response;
-      try {
-        response = await fetch('/api/tts', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        const fetchDuration = Date.now() - fetchStartTime;
-        console.log('[Hero] Fetch completed in', fetchDuration, 'ms');
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        const fetchDuration = Date.now() - fetchStartTime;
-        console.error('[Hero] Fetch failed after', fetchDuration, 'ms');
-        console.error('[Hero] Fetch error:', fetchError);
-        if (fetchError instanceof Error) {
-          console.error('[Hero] Fetch error name:', fetchError.name);
-          console.error('[Hero] Fetch error message:', fetchError.message);
-        }
-        throw fetchError;
-      }
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: text.trim() }),
+        signal: controller.signal,
+      });
 
-      console.log('[Hero] Fetch response received');
-      console.log('[Hero] Response status:', response.status);
-      console.log('[Hero] Response statusText:', response.statusText);
-      console.log('[Hero] Response ok:', response.ok);
-      console.log('[Hero] Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      const jsonStartTime = Date.now();
+      clearTimeout(timeoutId);
       const data = await response.json();
-      const jsonDuration = Date.now() - jsonStartTime;
-      console.log('[Hero] JSON parsed in', jsonDuration, 'ms');
-      console.log('[Hero] Response data:', data);
 
       if (!response.ok) {
-        console.error('[Hero] Response not ok, error:', data.error);
         throw new Error(data.error || 'Failed to generate audio');
       }
 
-      console.log('[Hero] Success! Setting audioUrl:', data.audioUrl);
       setAudioUrl(data.audioUrl);
     } catch (err) {
-      console.error('[Hero] Error caught:', err);
-      console.error('[Hero] Error details:', err instanceof Error ? err.message : String(err));
       setError(err instanceof Error ? err.message : t.errorGenerating);
     } finally {
-      console.log('[Hero] Setting isGenerating to false');
       setIsGenerating(false);
     }
   }, [text, t.errorGenerating]);
@@ -199,7 +157,7 @@ export default function Hero() {
 
               {/* Audio Player */}
               {audioUrl && (
-                <div className="mt-6">
+                <div className="mt-6 p-4 bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                   <audio
                     controls
                     src={audioUrl}
