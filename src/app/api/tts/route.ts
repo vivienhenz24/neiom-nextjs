@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
 
     // Initialize Gradio client
     const client = await Client.connect('vivienhenz/neiom-v0', {
-      hf_token: hfToken,
+      headers: {
+        Authorization: `Bearer ${hfToken}`,
+      },
     });
 
     // Call the generate speech API
@@ -33,7 +35,24 @@ export async function POST(request: NextRequest) {
     });
 
     // Extract audio URL from result
-    const audioUrl = result?.data?.[0]?.url || result?.data?.[0];
+    // Handle different possible result structures
+    const resultData = result?.data as unknown;
+    let audioUrl: string | null = null;
+
+    if (Array.isArray(resultData) && resultData.length > 0) {
+      const firstItem = resultData[0];
+      if (typeof firstItem === 'string') {
+        audioUrl = firstItem;
+      } else if (firstItem && typeof firstItem === 'object' && 'url' in firstItem) {
+        audioUrl = (firstItem as { url: string }).url;
+      } else if (firstItem && typeof firstItem === 'object' && 'path' in firstItem) {
+        audioUrl = (firstItem as { path: string }).path;
+      }
+    } else if (typeof resultData === 'string') {
+      audioUrl = resultData;
+    } else if (resultData && typeof resultData === 'object' && 'url' in resultData) {
+      audioUrl = (resultData as { url: string }).url;
+    }
 
     if (!audioUrl) {
       return NextResponse.json(
