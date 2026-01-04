@@ -39,7 +39,6 @@ export default function TopBar() {
   const { t } = useLocale()
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const [solutionsOpen, setSolutionsOpen] = React.useState(false)
-  const [companyOpen, setCompanyOpen] = React.useState(false)
 
   if (isMobile) {
     return (
@@ -120,32 +119,6 @@ export default function TopBar() {
                 )}
               </div>
 
-              {/* Company Dropdown */}
-              <div>
-                <button 
-                  onClick={() => setCompanyOpen(!companyOpen)}
-                  className="flex items-center justify-between w-full text-left py-2 text-base font-normal text-black"
-                >
-                  {t.company}
-                  <svg 
-                    className={`w-4 h-4 transition-transform ${companyOpen ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                <div className="ml-4 mt-2 space-y-2">
-                  <Link href="/mission" className="block py-2 text-sm text-gray-600 hover:text-black transition-colors">
-                    {t.ourMission}
-                  </Link>
-                  <Link href="/team" className="block py-2 text-sm text-gray-600 hover:text-black transition-colors">
-                    {t.ourTeam}
-                  </Link>
-                </div>
-              </div>
-
               {/* Action Buttons */}
               <div className="pt-4 space-y-3">
                 <Link 
@@ -195,20 +168,6 @@ export default function TopBar() {
                   </ListItem>
                   <ListItem href="/solutions/call-centers" title={t.callCenters}>
                     {t.callCentersDesc}
-                  </ListItem>
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-            
-            <NavigationMenuItem>
-              <NavigationMenuTrigger className="text-sm sm:text-base lg:text-lg py-0">{t.company}</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid grid-cols-1 w-[300px] gap-3 p-4">
-                  <ListItem href="/mission" title={t.ourMission}>
-                    Discover our mission to preserve Luxembourgish language
-                  </ListItem>
-                  <ListItem href="/team" title={t.ourTeam}>
-                    Meet the co-founders behind Neiom
                   </ListItem>
                 </ul>
               </NavigationMenuContent>
